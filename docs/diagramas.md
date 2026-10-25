@@ -5,26 +5,50 @@ Obligatorio: Se utiliza un único campo `datetime` para la fecha y hora del turn
 
 ```mermaid
 erDiagram
-    PACIENTES ||--o{ TURNOS : reserva
+    ROLES ||--o{ USUARIOS : asigna
+    USUARIOS ||--o| PACIENTES : representa
+    ESPECIALIDADES ||--o{ MEDICOS : clasifica
+    CONSULTORIOS ||--o{ TURNOS : utiliza
     MEDICOS ||--o{ AGENDAS : configura
     MEDICOS ||--o{ TURNOS : atiende
+    PACIENTES ||--o{ TURNOS : reserva
 
-    PACIENTES {
+    ROLES {
         int id PK
         string nombre
-        string email
+    }
+    USUARIOS {
+        int id PK
+        string email UK
         string password_hash
+        int id_rol FK
+        boolean activo
+    }
+    PACIENTES {
+        int id PK
+        int id_usuario FK
+        string nombre
+        string dni UK
+    }
+    ESPECIALIDADES {
+        int id PK
+        string nombre UK
     }
     MEDICOS {
         int id PK
         string nombre
-        string especialidad
-        string consultorio_asignado
+        string matricula UK
+        int id_especialidad FK
+    }
+    CONSULTORIOS {
+        int id PK
+        string nombre
+        string ubicacion
     }
     AGENDAS {
         int id PK
         int id_medico FK
-        string dias_atencion
+        string dia_semana
         time horario_inicio
         time horario_fin
         int duracion_turno_minutos
@@ -33,10 +57,18 @@ erDiagram
         int id PK
         int id_paciente FK
         int id_medico FK
+        int id_consultorio FK
         datetime fecha_hora
-        string estado "disponible, reservado, confirmado, atendido, cancelado, ausente"
+        string estado
+        string qr_token UK
+        datetime hora_checkin
     }
 ```
+
+Los valores posibles de `TURNOS.estado` son `disponible`, `reservado`, `confirmado`,
+`atendido`, `cancelado` y `ausente`. La disponibilidad puede calcularse a partir de
+`AGENDAS` y de los turnos existentes; no es necesario persistir una fila por cada
+franja libre.
 
 ## Flujo de Reserva de Turnos
 
@@ -48,8 +80,8 @@ sequenceDiagram
     participant BaseDatos as MySQL
 
     Paciente->>Frontend: Elige especialidad, médico, día y hora
-    Frontend->>Backend: POST /api/turnos/reservar
-    Backend->>BaseDatos: UPDATE turno (estado='reservado')
+    Frontend->>Backend: POST /api/turnos
+    Backend->>BaseDatos: Transacción: valida y crea reserva
     Backend->>Backend: Genera código QR
     Backend-->>Paciente: Envía Email con confirmación y QR
 ```
@@ -59,7 +91,7 @@ sequenceDiagram
 ```mermaid
 flowchart TD
     A[Paciente llega a la clínica] --> B{Recepción escanea QR}
-    B --> C{¿Está dentro de los 15 min de tolerancia?}
+    B --> C{¿Está dentro de la ventana -15/+15 min?}
     C -- Sí --> D[Estado = 'Confirmado / En sala de espera']
     C -- No --> E[Estado = 'Ausente']
     D --> F[Registra hora de llegada real]
