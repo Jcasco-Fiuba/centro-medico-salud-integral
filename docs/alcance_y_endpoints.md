@@ -7,6 +7,10 @@
 1. Un médico no puede tener dos turnos superpuestos; un paciente no puede tener dos turnos activos simultáneos con el mismo médico.
 2. Si el paciente no hace check-in hasta 15 minutos después de la hora del turno, el turno queda como `ausente`.
 3. La información persistente se aloja en MySQL mediante tablas relacionadas y consultas SQL explícitas.
+4. Cada médico tiene una única especialidad.
+5. Hay una sola sede del centro medico.
+6. Recepcion se encarga de escanear el QR del paciente.
+7. Todos los turnos medicos tienen una duracion de 30 minutos.
 
 ## Restricciones Técnicas de la Cátedra
 * **Base de Datos:** Está terminantemente prohibido el uso de ORMS (SQLAlchemy, SQLModel, Django ORM, Peewee u otros)[cite: 20]. La comunicación o consultas a la base de datos deben hacerse mediante sentencias SQL explícitas escritas en el código[cite: 20].
@@ -27,8 +31,12 @@
 * **`GET /api/turnos/disponibles?medico_id={id}&fecha={YYYY-MM-DD}`**: Consulta la agenda y retorna franjas libres.
 * **`POST /api/turnos`**: Asigna el paciente al turno y genera el QR de confirmación.
 * **`PATCH /api/turnos/{id}/cancelacion`**: Cancela un turno reservado y libera su franja.
+* **`GET /api/turnos?paciente_id={id}`**: Turnos del paciente (solo los suyos).
+* **`GET /api/pacientes/{id}`**: Su perfil (solo el suyo).
+* **`PATCH /api/pacientes/{id}`**: Edita su perfil (solo el suyo).
 
 ### Módulo Backoffice / Recepción
 * **`POST /api/checkins`**: Recibe los datos del QR y valida la regla de tiempo para marcar `confirmado` o `ausente`.
 * **`GET /api/recepcion/sala-espera?fecha={YYYY-MM-DD}`**: Retorna la lista del día ordenada por hora de llegada.
 * **`GET /api/admin/estadisticas?desde={fecha}&hasta={fecha}`**: Retorna datos agrupados para el dashboard.
+* **`PATCH /api/turnos/{id}/atencion`**: Marca el turno como `atendido`.
