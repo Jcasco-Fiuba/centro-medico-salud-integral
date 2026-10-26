@@ -19,24 +19,49 @@
 
 ## Listado de Endpoints RESTful
 
-> El equipo inicialmente propuso rutas como `/pacientes/<dni>`, `/medicos/<nombre>`,
-> `/consultorios/<numero>` y filtros de turnos por estado. La revisión y equivalencia
-> de esas rutas está documentada en [`hito1_plan.md`](./hito1_plan.md). Para evitar
-> ambigüedad, los estados y filtros se expresan como parámetros de consulta y los
-> recursos se identifican con IDs estables.
-
 ### Módulo Público / Pacientes
 * **`GET /api/especialidades`**: Retorna el listado de especialidades médicas.
-* **`GET /api/medicos?especialidad_id={id}`**: Retorna los médicos de una especialidad específica.
-* **`GET /api/turnos/disponibles?medico_id={id}&fecha={YYYY-MM-DD}`**: Consulta la agenda y retorna franjas libres.
-* **`POST /api/turnos`**: Asigna el paciente al turno y genera el QR de confirmación.
-* **`PATCH /api/turnos/{id}/cancelacion`**: Cancela un turno reservado y libera su franja.
-* **`GET /api/turnos?paciente_id={id}`**: Turnos del paciente (solo los suyos).
-* **`GET /api/pacientes/{id}`**: Su perfil (solo el suyo).
-* **`PATCH /api/pacientes/{id}`**: Edita su perfil (solo el suyo).
+* **`GET /api/medicos?especialidad={id}`**: Retorna los médicos activos de una especialidad específica.
+* **`GET /api/turnos/disponibles?medico={id}&fecha={fecha}`**: Consulta la agenda y retorna los turnos en estado “disponible” de ese médico y día.
+* **`POST /api/turnos/reservar`**: Asigna el paciente al turno, lo pasa a “reservado”, genera el QR y envía el email con el botón cancelar.
+* **`PATCH /api/turnos/{id}/cancelar`**: Pasa el turno a “cancelado” y lo libera.
+* **`POST /api/pacientes`**: Registra un paciente nuevo (DNI, nombre y apellido, mail).
+* **`GET /api/pacientes/{dni}`**: Retorna el perfil del paciente (solo el propio).
+* **`PATCH /api/pacientes/{dni}`**: Modifica nombre o mail del paciente (solo el propio).
+* **`GET /api/turnos?dni={dni}`**: Retorna los turnos de un paciente (solo los propios).
 
-### Módulo Backoffice / Recepción
-* **`POST /api/checkins`**: Recibe los datos del QR y valida la regla de tiempo para marcar `confirmado` o `ausente`.
-* **`GET /api/recepcion/sala-espera?fecha={YYYY-MM-DD}`**: Retorna la lista del día ordenada por hora de llegada.
-* **`GET /api/admin/estadisticas?desde={fecha}&hasta={fecha}`**: Retorna datos agrupados para el dashboard.
-* **`PATCH /api/turnos/{id}/atencion`**: Marca el turno como `atendido`.
+### Módulo Recepción
+* **`POST /api/turnos/checkin`**: Recibe los datos del QR y valida la ventana de 15 minutos para marcar “confirmado” o “ausente”.
+* **`GET /api/turnos/sala-espera`**: Retorna los turnos “confirmados” del día en sala de espera.
+* **`PATCH /api/turnos/{id}/atender`**: Marca el turno como “atendido”.
+
+### Módulo Backoffice / Administración
+
+#### ABM de especialidades
+* **`GET /api/especialidades`**: Retorna el listado de especialidades médicas.
+* **`POST /api/especialidades`**: Alta de especialidad.
+
+#### ABM de médicos
+* **`GET /api/medicos`**: Retorna el listado de médicos (activos e inactivos).
+* **`GET /api/medicos/{id}`**: Retorna el detalle de un médico.
+* **`POST /api/medicos`**: Alta de médico.
+* **`PATCH /api/medicos/{id}`**: Modifica nombre, especialidad o consultorio.
+* **`PATCH /api/medicos/{id}/baja`**: Da de baja un médico.
+
+#### ABM de consultorios
+* **`GET /api/consultorios`**: Retorna el listado de consultorios.
+* **`GET /api/consultorios/{id}`**: Retorna el detalle de un consultorio.
+* **`POST /api/consultorios`**: Alta de consultorio.
+* **`PATCH /api/consultorios/{id}`**: Modifica el consultorio.
+* **`PATCH /api/consultorios/{id}/baja`**: Da de baja un consultorio.
+
+#### ABM de pacientes
+* **`GET /api/pacientes`**: Retorna el listado de pacientes.
+* **`PATCH /api/pacientes/{dni}/baja`**: Da de baja un paciente.
+
+#### Gestión de turnos y agenda
+* **`POST /api/turnos`**: Crea un turno en estado “disponible” para un médico en una fecha y hora.
+* **`GET /api/turnos`**: Retorna el listado de turnos.
+* **`GET /api/turnos?medico={id}`**: Retorna los turnos de un médico.
+* **`GET /api/turnos?estado={estado}`**: Filtra los turnos por estado (disponible, reservado, confirmado, atendido, cancelado, ausente).
+* **`GET /api/turnos/{id}`**: Retorna el detalle de un turno.
