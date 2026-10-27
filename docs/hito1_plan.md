@@ -21,52 +21,53 @@ Estos problemas generan demoras, trabajo administrativo repetido y pérdida de d
 
 ## 3. Solución propuesta
 
-Desarrollar una plataforma web con dos áreas:
+Desarrollar una plataforma web con tres niveles de experiencia:
 
-1. **Portal de pacientes:** consulta de especialidades y profesionales, búsqueda de disponibilidad, reserva o cancelación de turnos y recepción de una confirmación con código QR.
-2. **Backoffice de recepción/administración:** gestión de pacientes, médicos, especialidades, consultorios y agendas; escaneo o carga del QR; consulta de la sala de espera y visualización de estadísticas.
+1. **Portal Público (Usuario no logueado):** página de inicio informativa con secciones de **Novedades**, **Ofertas / Campañas preventivas**, **Ubicación con mapa interactivo y horarios de atención**, cartilla de especialidades/profesionales y **consulta pública de turnos disponibles sin necesidad de iniciar sesión** (`GET /api/turnos/disponibles`).
+2. **Portal de Pacientes (Autenticado):** registro e inicio de sesión para confirmar la reserva del turno seleccionado, recepción de confirmación por email con código QR y botón de cancelación, consulta de turnos propios y edición de perfil.
+3. **Backoffice de Recepción / Administración:** gestión (ABM) de especialidades, médicos, consultorios, pacientes y generación de turnos disponibles en agenda; escaneo del QR en recepción (`checkin`) y gestión de la sala de espera.
 
-La solución estará compuesta por un frontend server-side, un backend REST en Flask y una base MySQL. La comunicación frontend-backend se realizará desde Python mediante `requests`, de acuerdo con las restricciones de la cátedra. Las consultas a MySQL se escribirán con SQL explícito, sin ORM.
+La solución estará compuesta por un frontend server-side en Flask, un backend REST en Flask y una base MySQL. La comunicación frontend-backend se realizará desde Python mediante `requests`, de acuerdo con las restricciones de la cátedra. Las consultas a MySQL se escribirán con SQL explícito, sin ORM.
 
 ## 4. Objetivo general
 
-Centralizar la gestión de turnos del centro médico para que los pacientes puedan reservarlos de forma clara y el personal pueda controlar la llegada, la atención y el uso de los recursos.
+Centralizar la gestión de turnos del centro médico para que cualquier visitante pueda consultar información y disponibilidad de forma pública, los pacientes registrados puedan reservarlos de forma clara, y el personal pueda controlar la llegada, la atención y la administración del centro.
 
 ## 5. Objetivos específicos
 
-- Mostrar especialidades, médicos, consultorios y horarios disponibles.
+- Brindar una vista pública enriquecida para usuarios no logueados (novedades, ofertas/campañas de salud, ubicación con mapa y consulta libre de turnos disponibles).
+- Mostrar especialidades, médicos, consultorios y horarios disponibles sin exigir login previo.
 - Evitar que un médico tenga dos turnos superpuestos.
 - Evitar que un paciente reserve dos turnos activos con el mismo médico.
 - Confirmar la llegada mediante un QR asociado a una reserva.
 - Registrar estados del turno y hora real de check-in.
 - Ordenar la sala de espera según la llegada.
 - Permitir cancelaciones y liberar la disponibilidad.
-- Obtener métricas de ocupación, demanda y ausentismo.
-- Mantener separados los permisos de paciente, recepción y administración.
+- Mantener separados los permisos de visitante público, paciente autenticado y administrador de la clínica (`admin`).
 
 ## 6. Actores y permisos
 
 | Actor | Responsabilidades | Acciones principales |
 |---|---|---|
-| Paciente | Gestionar sus propios turnos | Consultar disponibilidad, reservar, cancelar, ver su QR y sus turnos |
-| Recepción | Operar la atención del día | Consultar agenda, validar QR, registrar llegada, consultar sala de espera |
-| Administrador | Configurar el sistema | Alta, modificación y baja lógica de pacientes, médicos, especialidades, consultorios y agendas; consultar estadísticas |
-| Sistema | Aplicar reglas automáticas | Validar disponibilidad, generar QR, actualizar estados y calcular indicadores |
+| Visitante (No logueado) | Informarse y explorar disponibilidad | Ver novedades, ofertas/campañas, ubicación y mapa; consultar especialidades, médicos activos y turnos disponibles (`GET /api/turnos/disponibles`); registrarse |
+| Paciente (`rol = paciente`) | Gestionar sus propios turnos y perfil | Confirmar reserva de turno (`POST /api/turnos/reservar`), cancelar turno, ver su QR, ver sus turnos y editar su perfil |
+| Administrador / Recepción (`rol = admin`) | Operar la atención del día y configurar el sistema | Escanear QR (`POST /api/turnos/checkin`), consultar sala de espera y marcar turno como atendido; realizar ABM de especialidades, médicos, consultorios, pacientes y creación de turnos disponibles en agenda (`POST /api/turnos`) |
+| Sistema | Aplicar reglas automáticas | Validar disponibilidad, generar QR, actualizar estados en ventana de 15 minutos |
 
-Un paciente no podrá modificar información de otros pacientes. Las operaciones de gestión sobre médicos, consultorios, especialidades y agendas quedarán restringidas a administración.
+Un paciente no podrá modificar ni consultar información de otros pacientes. Las operaciones de recepción (check-in y sala de espera) y de administración (ABM sobre médicos, consultorios, especialidades y generación de turnos) se unifican bajo el rol `admin`.
 
 ## 7. Alcance
 
 ### Incluido
 
-- Catálogo de especialidades, médicos y consultorios.
-- Configuración de agendas y duración de turnos.
-- Consulta de disponibilidad por médico y fecha.
-- Reserva, cancelación y consulta de turnos.
-- Generación de un identificador QR por reserva.
-- Check-in en recepción y sala de espera.
+- **Portal público sin login:** secciones de Novedades, Ofertas/Campañas de salud, Ubicación y Mapa interactivo de la sede, y buscador público de especialidades, médicos y turnos disponibles.
+- Catálogo y ABM de especialidades, médicos (con relación N:M a especialidades mediante tabla intermedia `medicos_especialidades`) y consultorios.
+- Tabla unificada `usuarios` que integra datos personales (`dni`, `nombre`, `apellido`) y credenciales/rol (`email`, `password_hash`, `rol`, `activo`), diferenciando a los pacientes del personal de la clínica.
+- Generación y consulta de turnos disponibles por médico y fecha.
+- Reserva, cancelación y consulta de turnos propios.
+- Generación de código QR por reserva y envío de confirmación con botón de cancelación.
+- Check-in en recepción (ventana de 15 minutos), sala de espera y cambio a estado `atendido`.
 - Estados de turno: `disponible`, `reservado`, `confirmado`, `atendido`, `cancelado`, `ausente`.
-- Dashboard básico con ocupación, demanda y ausentismo.
 - Validación de roles y datos de entrada.
 
 ### Fuera de alcance para la primera versión
@@ -120,11 +121,11 @@ Un paciente no podrá modificar información de otros pacientes. Las operaciones
 
 ## 11. Casos de uso prioritarios
 
-### CU-01 - Reservar un turno
+### CU-01 - Consultar disponibilidad (Público) y Reservar un turno (Autenticado)
 
-**Actor:** Paciente.  
-**Precondiciones:** paciente autenticado, médico activo y franja disponible.  
-**Flujo:** selecciona especialidad, médico, fecha y hora; el sistema vuelve a validar disponibilidad; crea la reserva; genera QR y muestra la confirmación.  
+**Actor:** Visitante público / Paciente autenticado.  
+**Precondiciones:** médico activo y franja disponible en estado `disponible`.  
+**Flujo:** el visitante selecciona especialidad, médico y fecha sin necesidad de iniciar sesión (`GET /api/turnos/disponibles`); al elegir un horario para reservar, si no inició sesión el sistema le solicita ingresar o registrarse; luego ejecuta `POST /api/turnos/reservar`, pasa el turno a `reservado`, genera el QR y envía la confirmación por email con botón de cancelación.  
 **Alternativas:** si otra persona ocupó la franja, se informa el conflicto y se solicita elegir otra.  
 **Resultado:** turno `reservado`.
 
@@ -132,118 +133,43 @@ Un paciente no podrá modificar información de otros pacientes. Las operaciones
 
 **Actor:** Paciente.  
 **Precondiciones:** el turno pertenece al paciente y se encuentra `reservado`.  
-**Flujo:** solicita la cancelación; el sistema valida la política; cambia el estado y libera la franja.  
+**Flujo:** solicita la cancelación (`PATCH /api/turnos/{id}/cancelar`); el sistema cambia el estado a `cancelado` y libera la franja.  
 **Resultado:** turno `cancelado`.
 
-### CU-03 - Registrar llegada
+### CU-03 - Registrar llegada (Check-in) y Atención
 
 **Actor:** Recepción.  
 **Precondiciones:** existe un turno reservado y se presenta su QR.  
-**Flujo:** recepción escanea o ingresa el código; el sistema valida autenticidad, vigencia y ventana temporal; registra `hora_checkin`.  
-**Resultado:** turno `confirmado` o `ausente` si no cumple la ventana.
+**Flujo:** recepción escanea el código (`POST /api/turnos/checkin`); el sistema valida la ventana de 15 minutos y registra `hora_checkin`. Luego aparece en `GET /api/turnos/sala-espera` y al ser llamado se marca con `PATCH /api/turnos/{id}/atender`.  
+**Resultado:** turno `confirmado` (y posteriormente `atendido`) o `ausente` si no cumple la ventana.
 
-### CU-04 - Consultar indicadores
+## 12. Contrato de API RESTful
 
-**Actor:** Administrador.  
-**Precondiciones:** existen turnos registrados y el usuario tiene permisos administrativos.  
-**Flujo:** selecciona el período; el sistema agrupa los turnos por estado, especialidad y médico.  
-**Resultado:** dashboard con métricas y período consultado.
+El listado completo y actualizado de endpoints por módulo (Público sin ingreso, Pacientes autenticados, Recepción y Backoffice/Administración) se encuentra detallado en [`alcance_y_endpoints.md`](./alcance_y_endpoints.md).
 
-## 12. Propuesta inicial de API
-
-La API debe mantener nombres consistentes y separar recursos de acciones:
-
-| Método | Endpoint | Acceso | Propósito |
-|---|---|---|---|
-| GET | `/api/especialidades` | Público/autenticado | Listar especialidades |
-| GET | `/api/medicos?especialidad_id={id}` | Público/autenticado | Listar médicos |
-| GET | `/api/consultorios` | Recepción/admin | Listar consultorios |
-| GET | `/api/turnos/disponibles?medico_id={id}&fecha={YYYY-MM-DD}` | Paciente | Consultar franjas |
-| POST | `/api/turnos` | Paciente | Crear reserva |
-| GET | `/api/turnos/mis-turnos` | Paciente | Consultar turnos propios |
-| PATCH | `/api/turnos/{id}/cancelacion` | Paciente/recepción | Cancelar un turno |
-| POST | `/api/checkins` | Recepción | Validar QR y registrar llegada |
-| GET | `/api/recepcion/sala-espera?fecha={YYYY-MM-DD}` | Recepción | Consultar sala de espera |
-| GET | `/api/admin/estadisticas?desde={fecha}&hasta={fecha}` | Admin | Obtener indicadores |
-
-Las rutas para alta, modificación y desactivación de catálogos deberán quedar bajo `/api/admin/...`. El nombre del recurso debe ser plural y los identificadores deben ser estables; no se recomienda usar el nombre del médico o el DNI como parte de la ruta.
-
-### Compatibilidad con el acuerdo inicial del equipo
-
-En las primeras conversaciones del equipo se propusieron rutas como `/pacientes/<dni>`,
-`/medicos/<nombre>`, `/consultorios/<numero>` y filtros de turnos por médico o estado.
-La idea funcional es válida, pero conviene ajustar la forma antes de implementarla:
-
-- usar identificadores (`id`) en vez de nombres, porque los nombres pueden repetirse o cambiar;
-- mantener los recursos en plural;
-- usar `PATCH` para cambios parciales y `POST` para altas o acciones que crean un recurso;
-- no usar un estado como si fuera un identificador de turno;
-- declarar explícitamente el rol requerido para cada operación;
-- preservar los datos personales del paciente fuera de URLs cuando no sea necesario.
-
-Si la cátedra o el equipo exige conservar exactamente las rutas iniciales, este es el
-contrato equivalente que debe documentarse:
-
-| Método | Ruta acordada | Acceso | Observación |
-|---|---|---|---|
-| GET | `/pacientes` | Recepción/admin | Listar pacientes |
-| GET | `/pacientes/{dni}` | Paciente/recepción/admin | Consultar un paciente; validar permisos |
-| POST/PATCH | `/pacientes` o `/pacientes/{dni}` | Paciente | Crear o modificar el propio perfil |
-| GET | `/medicos` | Público/autenticado | Listar médicos |
-| GET | `/medicos/{id}` | Público/autenticado | Consultar un médico por ID |
-| POST/PATCH | `/medicos` o `/medicos/{id}` | Admin | Alta o modificación |
-| GET | `/consultorios` | Recepción/admin | Listar consultorios |
-| GET | `/consultorios/{id}` | Recepción/admin | Consultar consultorio por ID |
-| POST/PATCH | `/consultorios` o `/consultorios/{id}` | Admin | Alta o modificación |
-| GET | `/especialidades` | Público/autenticado | Listar especialidades |
-| POST/PATCH | `/especialidades` o `/especialidades/{id}` | Admin | Alta o modificación |
-| GET | `/turnos` | Paciente/recepción/admin | Listar según rol y filtros |
-| GET | `/turnos/{id}` | Paciente/recepción/admin | Consultar un turno |
-| POST | `/turnos` | Paciente | Reservar un turno |
-| PATCH | `/turnos/{id}` | Paciente/recepción/admin | Cambiar estado o datos permitidos |
-| GET | `/turnos?medico_id={id}` | Recepción/admin | Filtrar por médico |
-| GET | `/turnos?estado={estado}` | Recepción/admin | Filtrar por estado |
-
-Las rutas `/turnos/{dni}`, `/turnos/{medico}`, `/turnos/{atendido}` y
-`/turnos/{cancelado}` no deben implementarse literalmente: son ambiguas porque el
-servidor no puede distinguir si el valor es un DNI, un nombre o un estado. Se reemplazan
-por `/turnos?paciente_dni={dni}`, `/turnos?medico_id={id}` y
-`/turnos?estado=atendido|cancelado`.
+Puntos clave del contrato:
+- **Consulta pública sin login:** `GET /api/especialidades`, `GET /api/medicos?especialidad={id}` y `GET /api/turnos/disponibles?medico={id}&fecha={fecha}` están abiertos a usuarios no autenticados.
+- **Acciones de paciente autenticado:** `POST /api/turnos/reservar`, `PATCH /api/turnos/{id}/cancelar`, `GET /api/pacientes/{dni}`, `PATCH /api/pacientes/{dni}` y `GET /api/turnos?dni={dni}`.
+- **Operación en Recepción:** `POST /api/turnos/checkin`, `GET /api/turnos/sala-espera` y `PATCH /api/turnos/{id}/atender`.
+- **ABM en Backoffice:** alta, modificación y baja lógica (`/baja`) de especialidades, médicos, consultorios y pacientes, además de la apertura de turnos disponibles (`POST /api/turnos`) y filtros (`GET /api/turnos?medico={id}`, `GET /api/turnos?estado={estado}`).
 
 ## 13. Modelo conceptual mínimo
 
-Entidades principales:
+Entidades principales (ver diagrama ERD en [`diagramas.md`](./diagramas.md)):
 
-- `pacientes`
-- `roles`
-- `usuarios`
-- `especialidades`
-- `medicos`
-- `consultorios`
-- `agendas`
-- `turnos`
+- `usuarios`: **tabla unificada de usuarios y pacientes** (incluye `id`, `dni`, `nombre`, `apellido`, `email`, `password_hash`, `rol` y `activo`). El campo `rol` distingue únicamente entre `paciente` y `admin` (personal de la clínica que abarca recepción y administración).
+- `especialidades`: catálogo de especialidades médicas (`id`, `nombre`).
+- `medicos`: profesionales del centro (`id`, `nombre`, `apellido`, `matricula`, `id_consultorio`, `activo`).
+- `medicos_especialidades`: **tabla intermedia (N:M)** que vincula médicos con especialidades (`id`, `id_medico`, `id_especialidad`). *(Nota: esquema extensible a `obras_sociales` si se opta por coberturas).*
+- `consultorios`: espacios físicos de atención (`id`, `nombre`, `ubicacion`, `activo`).
+- `turnos`: franjas horarias de 30 minutos (`id`, `id_usuario`, `id_medico`, `id_consultorio`, `fecha_hora` en un único campo `datetime`, `estado`, `qr_token`, `hora_checkin`).
 
-`usuarios` concentra autenticación y roles; `pacientes` contiene el perfil específico del paciente. `turnos` relaciona paciente, médico y fecha/hora, y conserva el estado y la hora de check-in. `agendas` define cuándo puede atender cada médico y la duración de cada franja. `especialidades` y `consultorios` deben ser entidades separadas para evitar duplicación y permitir cambios de catálogo.
+### Ajustes aplicados a partir de la revisión en clase
 
-### Revisión del esquema compartido por el equipo
-
-Las entidades propuestas por el equipo son correctas como punto de partida:
-`Pacientes`, `Médicos`, `Consultorios`, `Turnos` y `Especialidades`. Para que el
-modelo soporte autenticación y permisos, se agregan `Usuarios` y `Roles`.
-
-Cambios recomendados respecto de la planilla:
-
-- `DNI` debe ser un dato único del paciente, pero no conviene usarlo como clave
-  primaria de todas las relaciones; se recomienda un `id` interno y una restricción
-  `UNIQUE` para DNI.
-- `Médicos` necesita una relación con `Especialidades` y, preferentemente, una
-  matrícula única.
-- `Consultorios` debe tener un `id` interno y un nombre o número único.
-- `Turnos` necesita fecha y hora, paciente, médico, consultorio y estado. También
-  necesita `qr_token` y `hora_checkin` para cumplir el flujo definido.
-- `Activo` es útil para baja lógica, pero no reemplaza el estado de un turno.
-- La disponibilidad no debe guardarse como una lista fija de turnos disponibles:
-  debe calcularse a partir de la agenda del médico y los turnos ya reservados.
+1. **Unificación `usuarios` - `pacientes`:** Se eliminó la separación entre `usuarios`, `roles` y `pacientes`, consolidando todo en una única tabla `usuarios` con columna `rol`.
+2. **Tabla intermedia N:M (`medicos_especialidades`):** Se incorporó la relación muchos a muchos entre médicos y especialidades (o equivalente con obras sociales).
+3. **Consulta de turnos públicos sin ingreso:** El endpoint `GET /api/turnos/disponibles` pasó a ser público para que cualquier visitante consulte horarios antes de registrarse.
+4. **Más vistas para usuario no logueado:** Se sumaron al alcance del portal público las secciones de **Novedades**, **Ofertas / Campañas de salud** y **Ubicación con Mapa interactivo**.
 
 ## 14. Riesgos y decisiones pendientes
 

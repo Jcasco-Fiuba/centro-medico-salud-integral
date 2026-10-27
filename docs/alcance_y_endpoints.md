@@ -7,10 +7,14 @@
 1. Un médico no puede tener dos turnos superpuestos; un paciente no puede tener dos turnos activos simultáneos con el mismo médico.
 2. Si el paciente no hace check-in hasta 15 minutos después de la hora del turno, el turno queda como `ausente`.
 3. La información persistente se aloja en MySQL mediante tablas relacionadas y consultas SQL explícitas.
-4. Cada médico tiene una única especialidad.
-5. Hay una sola sede del centro medico.
-6. Recepcion se encarga de escanear el QR del paciente.
-7. Todos los turnos medicos tienen una duracion de 30 minutos.
+4. **Relación Médicos - Especialidades / Obras Sociales:** Un médico puede asociarse a una o más especialidades mediante una tabla intermedia `medicos_especialidades` (relación N:M, extensible también a coberturas/obras sociales si se requiere).
+5. **Tabla unificada `usuarios` y unificación de rol `admin`:** Los datos de autenticación (`email`, `password_hash`, `rol`) y los datos personales (`dni`, `nombre`, `apellido`, `activo`) se unifican en una sola tabla `usuarios`. El campo `rol` admite dos perfiles autenticados: `paciente` y `admin` (este último unifica las tareas operativas de recepción y las de backoffice/administración de la clínica).
+6. Hay una sola sede del centro médico.
+7. Recepción se encarga de escanear el QR del paciente.
+8. Todos los turnos médicos tienen una duración de 30 minutos.
+9. **Acceso Público sin Login (Usuario no logueado):** Cualquier visitante no autenticado puede navegar el portal público para:
+   - Consultar especialidades, médicos activos y **turnos disponibles sin necesidad de iniciar sesión** (`GET /api/turnos/disponibles`). El inicio de sesión o registro se exige recién al confirmar la reserva (`POST /api/turnos/reservar`).
+   - Visualizar secciones informativas del centro médico: **Novedades**, **Ofertas / Campañas de salud** (chequeos preventivos, vacunación, aptos físicos), **Ubicación y Mapa interactivo** de la sede, horarios de atención y canales de contacto.
 
 ## Restricciones Técnicas de la Cátedra
 * **Base de Datos:** Está terminantemente prohibido el uso de ORMS (SQLAlchemy, SQLModel, Django ORM, Peewee u otros)[cite: 20]. La comunicación o consultas a la base de datos deben hacerse mediante sentencias SQL explícitas escritas en el código[cite: 20].
@@ -19,13 +23,15 @@
 
 ## Listado de Endpoints RESTful
 
-### Módulo Público / Pacientes
-* **`GET /api/especialidades`**: Retorna el listado de especialidades médicas.
-* **`GET /api/medicos?especialidad={id}`**: Retorna los médicos activos de una especialidad específica.
-* **`GET /api/turnos/disponibles?medico={id}&fecha={fecha}`**: Consulta la agenda y retorna los turnos en estado “disponible” de ese médico y día.
-* **`POST /api/turnos/reservar`**: Asigna el paciente al turno, lo pasa a “reservado”, genera el QR y envía el email con el botón cancelar.
+### Módulo Público (Sin ingreso / Sin autenticación)
+* **`GET /api/especialidades`**: Retorna el listado de especialidades médicas (público, sin login).
+* **`GET /api/medicos?especialidad={id}`**: Retorna los médicos activos de una especialidad específica (público, sin login).
+* **`GET /api/turnos/disponibles?medico={id}&fecha={fecha}`**: Consulta la agenda y retorna los turnos en estado “disponible” de ese médico y día **sin requerir inicio de sesión**.
+* **`POST /api/pacientes`**: Registra un paciente nuevo (DNI, nombre y apellido, mail, contraseña).
+
+### Módulo Pacientes (Con ingreso / Autenticado)
+* **`POST /api/turnos/reservar`**: Asigna el paciente autenticado al turno, lo pasa a “reservado”, genera el QR y envía el email con el botón cancelar.
 * **`PATCH /api/turnos/{id}/cancelar`**: Pasa el turno a “cancelado” y lo libera.
-* **`POST /api/pacientes`**: Registra un paciente nuevo (DNI, nombre y apellido, mail).
 * **`GET /api/pacientes/{dni}`**: Retorna el perfil del paciente (solo el propio).
 * **`PATCH /api/pacientes/{dni}`**: Modifica nombre o mail del paciente (solo el propio).
 * **`GET /api/turnos?dni={dni}`**: Retorna los turnos de un paciente (solo los propios).
