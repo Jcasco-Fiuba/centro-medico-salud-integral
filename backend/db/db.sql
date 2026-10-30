@@ -56,3 +56,29 @@ CREATE TABLE IF NOT EXISTS turnos (
     FOREIGN KEY (id_medico) REFERENCES medicos(id),
     FOREIGN KEY (id_consultorio) REFERENCES consultorios(id)
 );
+
+-- Datos de prueba
+INSERT INTO consultorios (nombre, ubicacion, activo) VALUES
+('Consultorio 1', 'Sede Central', TRUE),
+('Consultorio 2', 'Sede Flores', TRUE);
+
+INSERT INTO especialidades (nombre) VALUES
+('Clinica Medica'),
+('Pediatria');
+
+INSERT INTO usuarios (dni, nombre, apellido, email, password_hash, rol, activo) VALUES
+('99999999', 'Marta', 'Gomez', 'marta@gomez.com', '12345678', 'paciente', TRUE),
+('55555555', 'Juan', 'Perez', 'juan@perez.com', '', 'juan5555', TRUE);
+
+INSERT INTO medicos (nombre, apellido, matricula, id_consultorio, activo) VALUES
+('Laura', 'Martinez', '34444', 1, TRUE),
+('Anabel', 'Ruiz', '20000', 2, TRUE);
+
+INSERT INTO medicos_especialidades (id_medico, id_especialidad) VALUES
+(1, 1),
+(2, 2);
+
+-- Un turno disponible y uno reservado (fechas relativas a hoy)
+INSERT INTO turnos (id_usuario, id_medico, id_consultorio, fecha_hora, estado, string_token, hora_checkin) VALUES
+(NULL, 1, 1, '2026-11-02 9:00:00', 'disponible', NULL, NULL),
+(2, 2, 2, '2026-11-02 10:00:00', 'reservado', 'manzana', NULL);
