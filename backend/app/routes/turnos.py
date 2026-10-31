@@ -122,13 +122,9 @@ def post_reservar_turno():
     if not isinstance(datos, dict):
         return jsonify({"error": "JSON invalido"}), 400
 
-    turno_id = datos.get("turno_id")
-
-    if not isinstance(turno_id, int) or turno_id <= 0:
-        return jsonify({"error": "ID de turno invalido"}), 400
-
+    
     try:
-        turno = reservar_turno(turno_id, usuario["id"])
+        turno = reservar_turno(datos, usuario["id"])
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
