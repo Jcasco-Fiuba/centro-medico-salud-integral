@@ -157,7 +157,7 @@ def listar_medicos() -> list[dict]:
     """
 
     sql = """
-    SELECT id, nombre, apellido, matricula, id_consultoirio, activo
+    SELECT id, nombre, apellido, matricula, id_consultorio, activo
     FROM medicos
     ORDER BY apellido, nombre
     """
@@ -172,7 +172,7 @@ def obtener_medico_por_id(id) -> dict:
     """
 
     sql = """
-    SELECT id, nombre, apellido, matricula, id_consultoirio, activo
+    SELECT id, nombre, apellido, matricula, id_consultorio, activo
     FROM medicos
     WHERE id = :id
     """
@@ -188,7 +188,7 @@ def crear_medico(datos: dict) -> int:
     """
 
     sql = """
-    INSERT INTO usuarios (nombre, apellido, matricula, id_consultorio)
+    INSERT INTO medicos (nombre, apellido, matricula, id_consultorio)
     VALUES (:nombre, :apellido, :matricula, :id_consultorio)
     """
     return ejecutar_mutacion(sql, {
@@ -216,7 +216,7 @@ def actualizar_medico(id, campos: dict) -> dict:
         return obtener_medico_por_id(id)
  
     set_clause = ", ".join(f"{campo} = :{campo}" for campo in campos_validos)
-    sql = f"UPDATE usuarios SET {set_clause} WHERE id = :id"
+    sql = f"UPDATE medicos SET {set_clause} WHERE id = :id"
     parametros = {**campos_validos, "id": id}
  
     ejecutar_mutacion(sql, parametros)
@@ -235,4 +235,104 @@ def baja_medico(id) -> dict:
     ejecutar_mutacion(sql, {'id': id})
  
     return obtener_medico_por_id(id)
- 
+
+# ---------------------------------------------------------------
+# Queries de turnos
+# ---------------------------------------------------------------
+
+def listar_turnos() -> list[dict]:
+
+    """
+    Lista todos los turnos disponibles.
+    """
+
+    sql = """
+    SELECT id_medico, id_consultorio, fecha_hora
+    FROM turnos
+    WHERE estado = 'disponible'
+    """
+    return ejecutar_consulta(sql)
+
+
+def buscar_turno_id(id):
+    
+    """
+    Recibe un id de turno y retorna el detalle del mismo.
+    """
+
+    sql = """
+    SELECT id, id_usuario, id_medico, id_consultorio, fecha_hora, estado, string_token
+    FROM turnos
+    WHERE id = :id
+    """  
+    filas = ejecutar_consulta(sql, {'id': id})
+    
+    return filas[0] if filas else {}
+
+
+def buscar_turno_por_medico(medico, estado) -> list[dict]:
+
+    """
+    Recibe el id de un medico y un estado, y lista los turnos
+    del medico con el estado seleccionados.
+    """
+
+    sql = """
+    SELECT id, id_usuario, id_medico, id_consultorio, fecha_hora, estado
+    FROM turnos
+    WHERE id_medico = :medico AND estado = :estado
+    """
+
+    return ejecutar_consulta(sql, {'medico': medico, 'estado': estado})
+
+
+def crear_turno(datos: dict) -> dict:
+
+    """
+    Recibe datos del nuevo turno y lo agrega a la base de datos.
+    """
+
+    sql = """
+    INSERT INTO turnos (id_medico, id_consultorio, fecha_hora)
+    VALUES (:id_medico, :id_consultorio, :fecha_hora)
+    """
+    id_turno = ejecutar_mutacion(sql, {
+        'id_medico': datos['id_medico'],
+        'id_consultorio': datos['id_consultorio'],
+        'fecha_hora': datos['fecha_hora']
+    })
+
+    return buscar_turno_id(id_turno)
+
+
+def actualizar_reserva_turno(turno_id, usuario_id, token) -> dict | None:
+
+    """
+    Recibe el id de un turno, el id de un usuario y un token. Si el turno
+    esta disponible, se lo asigna al usuario, guarda el token, lo pasa a
+    reservado y devuelve el turno actualizado. Si no se pudo reservar,
+    retorna None.
+    """
+
+    turno = buscar_turno_id(turno_id)
+
+    if not turno or turno['estado'] != 'disponible':
+        return None
+
+    sql = """
+    UPDATE turnos
+    SET id_usuario = :usuario_id, string_token = :token, estado = 'reservado'
+    WHERE id = :turno_id AND estado = 'disponible'
+    """
+    ejecutar_mutacion(sql, {
+        'usuario_id': usuario_id,
+        'token': token,
+        'turno_id': turno_id
+    })
+
+    turno = buscar_turno_id(turno_id)
+
+    if turno['string_token'] != token:
+        return None 
+
+    return turno
