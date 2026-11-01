@@ -1,7 +1,15 @@
-from datetime import datetime
+from datetime import datetime,timedelta
 import secrets
 import io
 import qrcode
+
+from app.validators.turnos import (
+    validar_get_turnos,
+    validar_post_turno,
+    validar_reserva_turno,
+    validar_consulta_disponible,
+    validar_checkin
+)
 
 def obtener_turno(id):
     turno = buscar_turno_id(id)
@@ -64,3 +72,84 @@ def reservar_turno(datos, usuario_id):
     qr_png= _generar_qr_png(token)
     return turno_reservado, None
 
+def listar_turnos_disponibles(medico, fecha):
+    datos = {}
+
+    if medico is not None:
+        datos["medico"] = medico
+    if fecha is not None:
+        datos["fecha"] = fecha
+
+    errores = validar_consulta_disponible(datos)
+    if errores:
+        raise ValueError("; ".join(errores))
+
+    turnos = buscar_turnos_disponibles(int(medico), fecha)
+    return turnos
+
+def listar_sala_espera():
+    fecha = datetime.now().date()
+    turnos = buscar_turnos_sala_espera(fecha)
+    return turnos
+
+def atender_turno(id):
+    turno = buscar_turno_id(id)
+    if turno is None:
+        return None
+
+    if turno["estado"] != "confirmado":
+        raise ValueError("El turno no esta confirmado")
+
+    turno_actualizado = actualizar_turno_atendido(id)
+    if turno_actualizado is None:
+        raise ValueError("No se pudo atender el turno")
+
+    return turno_actualizado
+
+def cancelar_turno(id, usuario_id):
+    turno = buscar_turno_id(id)
+
+    if turno is None:
+        return None
+    if turno["id_usuario"] != usuario_id:
+        raise PermissionError("No puedes cancelar un turno de otro paciente")
+    if turno["estado"] != "reservado":
+        raise ValueError("El turno no esta reservado")
+
+    turno_cancelado = actualizar_cancelacion_turno(id, usuario_id)
+
+    if turno_cancelado is None:
+        raise ValueError("No se pudo cancelar el turno")
+
+    return turno_cancelado
+
+def realizar_checkin(datos):
+    errores = validar_checkin(datos)
+    if errores:
+        raise ValueError("; ".join(errores))
+
+    token = datos["string_token"]
+    turno = buscar_turno_por_token(token)
+
+    if turno is None:
+        return None
+    if turno["estado"] != "reservado":
+        raise ValueError("El turno no esta reservado")
+
+    fecha_turno = turno["fecha_hora"]
+    ahora = datetime.now()
+
+    if ahora < fecha_turno - timedelta(minutes=15):
+        raise ValueError("Todavia es temprano para hacer el check-in")
+
+    if ahora > fecha_turno + timedelta(minutes=15):
+        turno_ausente = marcar_turno_ausente(turno["id"])
+        if turno_ausente is None:
+            raise ValueError("No se pudo registrar la ausencia")
+        return turno_ausente
+
+    turno_confirmado = registrar_checkin(turno["id"], ahora)
+    if turno_confirmado is None:
+        raise ValueError("No se pudo registrar el check-in")
+
+    return turno_confirmado

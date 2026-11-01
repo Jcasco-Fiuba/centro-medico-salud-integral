@@ -8,7 +8,8 @@ from app.services.turnos import (
     listar_sala_espera,
     atender_turno,
     cancelar_turno,
-    reservar_turno
+    reservar_turno,
+    realizar_checkin
    
 )
 
@@ -22,9 +23,9 @@ def get_turnos():
     estado = request.args.get("estado")
 
     try:
-        turnos = listar_turnos(medico, estado)
+     turnos = listar_turnos(medico, estado)
     except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+     return jsonify({"error": str(e)}), 400
 
     return jsonify(turnos), 200
 
@@ -37,10 +38,9 @@ def get_turno(id):
     turno = obtener_turno(id)
 
     if turno is None:
-        return jsonify({"error": "Turno no encontrado"}), 404
+     return jsonify({"error": "Turno no encontrado"}), 404
 
     return jsonify(turno), 200
-
 
 
 @turnos_bp.route("/api/turnos", methods=["POST"])
@@ -49,14 +49,24 @@ def post_turno():
     datos = request.get_json(silent=True)
 
     if not isinstance(datos, dict):
-        return jsonify({"error": "JSON invalido"}), 400
+     return jsonify({"error": "JSON invalido"}), 400
+
+    campos = ["id_medico", "id_consultorio", "fecha_hora"]
+
+    for campo in campos:
+     if campo not in datos:
+      return jsonify({"error": "Falta el campo " + campo}), 400
 
     try:
-        turno = crear_turno(datos)
+     turno, error = crear_turno(datos)
     except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+     return jsonify({"error": str(e)}), 400
+
+    if error is not None:
+     return jsonify({"error": error}), 400
 
     return jsonify(turno), 201
+
 
 @turnos_bp.route("/api/turnos/disponibles", methods = ["GET"])
 def get_turnos_disponibles():
@@ -65,9 +75,9 @@ def get_turnos_disponibles():
     fecha = request.args.get("fecha")
 
     try:
-        turnos = listar_turnos_disponibles(medico,fecha)
+     turnos = listar_turnos_disponibles(medico,fecha)
     except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+     return jsonify({"error": str(e)}), 400
 
     return jsonify(turnos), 200    
 
@@ -82,12 +92,12 @@ def get_sala_espera():
 def patch_atender_turno(id):
 
     try:
-        turno = atender_turno(id)
+     turno = atender_turno(id)
     except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+     return jsonify({"error": str(e)}), 400
 
     if turno is None:
-        return jsonify({"error": "Turno no encontrado"}), 404
+     return jsonify({"error": "Turno no encontrado"}), 404
 
     return jsonify(turno), 200
 
@@ -97,10 +107,10 @@ def patch_cancelar_turno(id):
     try:
         turno = cancelar_turno(id)
     except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+     return jsonify({"error": str(e)}), 400
 
     if turno is None:
-        return jsonify({"error": "Turno no encontrado"}), 404
+     return jsonify({"error": "Turno no encontrado"}), 404
 
     return jsonify(turno), 200
 
@@ -112,19 +122,34 @@ def post_reservar_turno():
     usuario = getattr(g, "usuario", None)
 
     if usuario is None:
-        return jsonify({"error": "Debes iniciar sesion"}), 401
+     return jsonify({"error": "Debes iniciar sesion"}), 401
 
     if usuario.get("rol") != "paciente":
-        return jsonify({"error": "No tienes permiso para reservar"}), 403
+     return jsonify({"error": "No tienes permiso para reservar"}), 403
 
     datos = request.get_json(silent=True)
 
     if not isinstance(datos, dict):
+     return jsonify({"error": "JSON invalido"}), 400
+
+    try:
+     turno, error = reservar_turno(datos, usuario["id"])
+    except ValueError as e:
+     return jsonify({"error": str(e)}), 400
+
+    if error is not None:
+     return jsonify({"error": error}), 400
+
+    return jsonify(turno), 200
+
+@turnos_bp.route("/api/turnos/checkin", methods=["POST"])
+def post_checkin():
+    datos = request.get_json(silent=True)
+    if not isinstance(datos, dict):
         return jsonify({"error": "JSON invalido"}), 400
 
-    
     try:
-        turno = reservar_turno(datos, usuario["id"])
+        turno = realizar_checkin(datos)
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
