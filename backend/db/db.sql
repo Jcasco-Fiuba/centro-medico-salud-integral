@@ -68,7 +68,7 @@ INSERT INTO especialidades (nombre) VALUES
 
 INSERT INTO usuarios (dni, nombre, apellido, email, password_hash, rol, activo) VALUES
 ('99999999', 'Marta', 'Gomez', 'marta@gomez.com', '12345678', 'paciente', TRUE),
-('55555555', 'Juan', 'Perez', 'juan@perez.com', '', 'juan5555', TRUE);
+('55555555', 'Juan', 'Perez', 'juan@perez.com', 'juan5555', 'paciente', TRUE);
 
 INSERT INTO medicos (nombre, apellido, matricula, id_consultorio, activo) VALUES
 ('Laura', 'Martinez', '34444', 1, TRUE),
@@ -78,7 +78,6 @@ INSERT INTO medicos_especialidades (id_medico, id_especialidad) VALUES
 (1, 1),
 (2, 2);
 
--- Un turno disponible y uno reservado (fechas relativas a hoy)
 INSERT INTO turnos (id_usuario, id_medico, id_consultorio, fecha_hora, estado, string_token, hora_checkin) VALUES
 (NULL, 1, 1, '2026-11-02 9:00:00', 'disponible', NULL, NULL),
 (2, 2, 2, '2026-11-02 10:00:00', 'reservado', 'manzana', NULL);
