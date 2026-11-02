@@ -27,13 +27,20 @@ def dar_de_baja_medico(id_medico: int):
 
 def obtener_medico(id_medico: int):
     """devuelve el médico con sus especialidades, o None si no existe."""
-    return db.obtener_medico_por_id(id_medico)
-
+    medico = db.obtener_medico_por_id(id_medico)
+    if medico is None:
+        return None
+    
+    medico["especialidades"] = db.listar_especialidades_por_medico(id_medico)
+    return medico
+    
  
 def crear_medico(datos: dict) -> dict:
-    """crea el médico y lo devuelve completo."""
+    """crea el médico , lo asocia a su/s especialidad/es y lo devuelve completo."""
     try:
         id_medico = db.crear_medico(datos)
+        for id_especialidad in datos["especialidades"]:
+            db.asociar_medico_a_especialidad(id_medico, id_especialidad)
     except errors.IntegrityError:
         raise ValueError("La matrícula ya existe, o el consultorio o alguna especialidad no existe.")
 
@@ -43,11 +50,18 @@ def crear_medico(datos: dict) -> dict:
 def modificar_medico(id_medico: int, cambios: dict):
     
     """modifica el médico y lo devuelve actualizado, o None si no existe."""
-    try:
-        existia = db.actualizar_medico(id_medico, cambios)
-    except errors.IntegrityError:
-        raise ValueError("La matrícula ya existe, o el consultorio o alguna especialidad no existe.")
-
-    if not existia:
+    if not db.obtener_medico_por_id(id_medico):
         return None
-    return db.obtener_medico_por_id(id_medico)
+    try:
+        db.actualizar_medico(id_medico, cambios)
+        if "especialidades" in cambios:
+            db.borrar_especialidades_medico(id_medico)
+            for id_especialidad in cambios["especialidades"]:
+                db.asociar_medico_especialidad({
+                    "id_medico": id_medico,
+                    "id_especialidad": id_especialidad,
+                })
+    except errors.IntegrityError:
+        raise ValueError("El consultorio o alguna especialidad no existe.")
+
+    return obtener_medico(id_medico)
