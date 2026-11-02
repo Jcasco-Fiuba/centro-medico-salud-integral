@@ -48,21 +48,21 @@ def patch_medico_baja(id):
 @medicos_bp.route("/medicos/<id>", methods=["GET"])
 def get_medico(id):
    """devuelve informacion de un medico por su id"""
-    try:
+   try:
         id_medico = validar_id_medico(id)
-    except ValueError as error:
+   except ValueError as error:
         return jsonify({"error": str(error)}), 400
  
-    try:
+   try:
         medico = medicos_service.obtener_medico(id_medico)
-    except NotImplementedError as error:
+   except NotImplementedError as error:
         return jsonify({"error": str(error)}), 501
-    except Exception:
+   except Exception:
         return jsonify({"error": "Error del servidor"}), 500
  
-    if medico is None:
+   if medico is None:
         return jsonify({"error": "Médico no encontrado"}), 404
-    return jsonify(medico), 200
+   return jsonify(medico), 200
 
 
 @medicos_bp.route("/medicos", methods=["POST"])
