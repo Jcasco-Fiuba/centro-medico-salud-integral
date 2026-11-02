@@ -1,57 +1,73 @@
+
 def validar_dni(dni):
-    valido = True
+    """Valida que el DNI tenga entre 7 y 8 digitos numericos."""
 
     if len(dni) < 7 or len(dni) > 8:
-        valido = False
-    elif not dni.isdigit():
-        valido = False
+        raise ValueError("El DNI debe tener entre 7 y 8 digitos")
 
-    return valido
+    if not dni.isdigit():
+        raise ValueError("El DNI debe contener solo numeros")
 
 
 def validar_nombre(nombre):
-    valido = True
+    """Valida la longitud del nombre y que contenga solo letras y espacios."""
 
     if len(nombre.strip()) == 0 or len(nombre) > 50:
-        valido = False
-    else:
-        for caracter in nombre:
-            if not caracter.isalpha() and caracter != " ":
-                valido = False
+        raise ValueError("El nombre debe tener entre 1 y 50 caracteres")
 
-    return valido
+    for caracter in nombre:
+        if not caracter.isalpha() and caracter != " ":
+            raise ValueError("El nombre solo puede contener letras y espacios")
 
 
 def validar_email(email):
-    valido = True
+    """Valida el formato y la estructura de una direccion de email."""
 
     if len(email) == 0 or len(email) > 100:
-        valido = False
-    elif email.count("@") != 1:
-        valido = False
-    elif " " in email:
-        valido = False
-    else:
-        partes = email.split("@")
+        raise ValueError("El email debe tener entre 1 y 100 caracteres")
 
-        if len(partes[0]) == 0:
-            valido = False
-        elif len(partes[1]) == 0:
-            valido = False
-        elif "." not in partes[1]:
-            valido = False
-        elif partes[1][0] == "." or partes[1][-1] == ".":
-            valido = False
-        elif ".." in email:
-            valido = False
+    if email.count("@") != 1:
+        raise ValueError("El email debe tener una sola arroba")
 
-    return valido
+    if " " in email or ".." in email:
+        raise ValueError("El email contiene caracteres no permitidos")
+
+    partes = email.split("@")
+    usuario = partes[0]
+    dominio = partes[1]
+
+    if len(usuario) == 0 or len(dominio) == 0:
+        raise ValueError("El email esta incompleto")
+
+    if "." not in dominio:
+        raise ValueError("El dominio debe contener un punto")
+
+    if usuario[0] == "." or usuario[-1] == ".":
+        raise ValueError("El usuario del email no es valido")
+
+    if dominio[0] == "." or dominio[-1] == ".":
+        raise ValueError("El dominio no es valido")
+
+    partes_dominio = dominio.split(".")
+
+    for parte in partes_dominio:
+        if len(parte) == 0:
+            raise ValueError("El dominio contiene partes vacias")
+
+    extension = partes_dominio[-1]
+
+    if len(extension) < 2 or not extension.isalpha():
+        raise ValueError("La extension del email no es valida")
 
 
 def validar_registro_paciente(datos):
-    errores = []
+    """Valida los campos obligatorios y los datos para registrar un paciente."""
 
+    errores = []
     campos = ["dni", "nombre", "apellido", "email"]
+
+    if type(datos) != dict:
+        return ["Los datos deben ser un objeto"]
 
     for campo in campos:
         if campo not in datos:
@@ -59,26 +75,34 @@ def validar_registro_paciente(datos):
         elif type(datos[campo]) != str:
             errores.append("El campo " + campo + " debe ser texto")
 
+    for campo in datos:
+        if campo not in campos:
+            errores.append("El campo " + campo + " no esta permitido")
+
     if len(errores) == 0:
-        if not validar_dni(datos["dni"]):
-            errores.append("El DNI no es valido")
+        for campo in campos:
+            try:
+                if campo == "dni":
+                    validar_dni(datos[campo])
+                elif campo == "email":
+                    validar_email(datos[campo])
+                else:
+                    validar_nombre(datos[campo])
 
-        if not validar_nombre(datos["nombre"]):
-            errores.append("El nombre no es valido")
-
-        if not validar_nombre(datos["apellido"]):
-            errores.append("El apellido no es valido")
-
-        if not validar_email(datos["email"]):
-            errores.append("El email no es valido")
+            except ValueError as error:
+                errores.append("El campo " + campo + ": " + str(error))
 
     return errores
 
-    
-def validar_actualizacion_paciente(datos):
-    errores = []
 
+def validar_actualizacion_paciente(datos):
+    """Valida los campos permitidos y sus valores al actualizar un paciente."""
+
+    errores = []
     campos = ["nombre", "apellido", "email"]
+
+    if type(datos) != dict:
+        return ["Los datos deben ser un objeto"]
 
     if len(datos) == 0:
         errores.append("No se enviaron datos para actualizar")
@@ -86,13 +110,21 @@ def validar_actualizacion_paciente(datos):
     for campo in datos:
         if campo not in campos:
             errores.append("El campo " + campo + " no se puede modificar")
+
         elif type(datos[campo]) != str:
             errores.append("El campo " + campo + " debe ser texto")
-        elif campo == "nombre" or campo == "apellido":
-            if not validar_nombre(datos[campo]):
-                errores.append("El campo " + campo + " no es valido")
-        elif campo == "email":
-            if not validar_email(datos[campo]):
-                errores.append("El email no es valido")
+
+        else:
+            try:
+                if campo == "nombre" or campo == "apellido":
+                    validar_nombre(datos[campo])
+
+                elif campo == "email":
+                    validar_email(datos[campo])
+
+            except ValueError as error:
+                errores.append("El campo " + campo + ": " + str(error))
 
     return errores
+
+

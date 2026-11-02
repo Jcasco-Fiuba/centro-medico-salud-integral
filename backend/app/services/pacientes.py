@@ -14,12 +14,16 @@ from app.db import (
 
 
 def obtener_paciente(dni):
-    if not validar_dni(dni):
-        return {"error": "El DNI no es valido"}, 400
+    """Valida el DNI y obtiene los datos de un paciente."""
+
+    try:
+        validar_dni(dni)
+    except ValueError as error:
+        return {"error": str(error)}, 400
 
     paciente = obtener_paciente_por_dni(dni)
 
-    if paciente is None:
+    if not paciente:
         return {"error": "Paciente no encontrado"}, 404
 
     datos_paciente = {
@@ -33,6 +37,8 @@ def obtener_paciente(dni):
 
 
 def registrar_paciente(datos):
+    """Valida los datos y registra un nuevo paciente."""
+
     errores = validar_registro_paciente(datos)
 
     if len(errores) > 0:
@@ -41,21 +47,26 @@ def registrar_paciente(datos):
     dni = datos["dni"]
     email = datos["email"]
 
-    if obtener_paciente_por_dni(dni) is not None:
+    if obtener_paciente_por_dni(dni):
         return {"error": "El DNI ya esta registrado"}, 409
 
-    if obtener_paciente_por_email(email) is not None:
+    if obtener_paciente_por_email(email):
         return {"error": "El email ya esta registrado"}, 409
 
     nuevo_paciente = {
         "dni": dni,
         "nombre": datos["nombre"],
         "apellido": datos["apellido"],
-        "email": email,
-        "activo": True
+        "email": email
     }
 
-    paciente = crear_paciente(nuevo_paciente)
+    # Pendiente: incorporar password_hash desde autenticacion
+    crear_paciente(nuevo_paciente)
+
+    paciente = obtener_paciente_por_dni(dni)
+
+    if not paciente:
+        return {"error": "No se pudo recuperar el paciente creado"}, 500
 
     datos_paciente = {
         "dni": paciente["dni"],
@@ -71,8 +82,12 @@ def registrar_paciente(datos):
 
 
 def actualizar_paciente(dni, datos):
-    if not validar_dni(dni):
-        return {"error": "El DNI no es valido"}, 400
+    """Valida y actualiza los datos de un paciente existente."""
+
+    try:
+        validar_dni(dni)
+    except ValueError as error:
+        return {"error": str(error)}, 400
 
     errores = validar_actualizacion_paciente(datos)
 
@@ -81,13 +96,13 @@ def actualizar_paciente(dni, datos):
 
     paciente = obtener_paciente_por_dni(dni)
 
-    if paciente is None:
+    if not paciente:
         return {"error": "Paciente no encontrado"}, 404
 
     if "email" in datos:
         usuario = obtener_paciente_por_email(datos["email"])
 
-        if usuario is not None and usuario["dni"] != dni:
+        if usuario and str(usuario["dni"]) != str(dni):
             return {"error": "El email ya esta registrado"}, 409
 
     actualizado = actualizar_paciente_db(dni, datos)
