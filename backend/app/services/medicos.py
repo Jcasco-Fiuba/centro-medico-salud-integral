@@ -40,7 +40,10 @@ def crear_medico(datos: dict) -> dict:
     try:
         id_medico = db.crear_medico(datos)
         for id_especialidad in datos["especialidades"]:
-            db.asociar_medico_a_especialidad(id_medico, id_especialidad)
+            db.asociar_medico_a_especialidad({
+                "id_medico": id_medico,
+                "id_especialidad": id_especialidad
+            })
     except errors.IntegrityError:
         raise ValueError("La matrícula ya existe, o el consultorio o alguna especialidad no existe.")
 
