@@ -247,7 +247,7 @@ def listar_turnos() -> list[dict]:
     """
 
     sql = """
-    SELECT id_medico, id_consultorio, fecha_hora
+    SELECT id, id_medico, id_consultorio, fecha_hora
     FROM turnos
     WHERE estado = 'disponible'
     """
@@ -261,13 +261,34 @@ def buscar_turno_id(id):
     """
 
     sql = """
-    SELECT id, id_usuario, id_medico, id_consultorio, fecha_hora, estado, string_token
+    SELECT id, id_usuario, id_medico, id_consultorio, fecha_hora, estado, string_token, hora_checkin
     FROM turnos
     WHERE id = :id
     """  
     filas = ejecutar_consulta(sql, {'id': id})
     
     return filas[0] if filas else {}
+
+
+def buscar_turno_dni(dni) -> list[dict]:
+
+    """
+    Recibe el dni de un paciente y retorna el detalle de sus turnos.
+    """
+
+    sql = """
+    SELECT turnos.id, turnos.fecha_hora, turnos.estado, turnos.string_token,
+           medicos.nombre AS medico_nombre, medicos.apellido AS medico_apellido,
+           consultorios.nombre AS consultorio, consultorios.ubicacion
+    FROM turnos
+    INNER JOIN usuarios ON usuarios.id = turnos.id_usuario
+    INNER JOIN medicos ON medicos.id = turnos.id_medico
+    INNER JOIN consultorios ON consultorios.id = turnos.id_consultorio
+    WHERE usuarios.dni = :dni
+    ORDER BY turnos.fecha_hora
+    """
+    
+    return ejecutar_consulta(sql, {'dni': dni})
 
 
 def buscar_turno_por_medico(medico, estado) -> list[dict]:
@@ -284,6 +305,38 @@ def buscar_turno_por_medico(medico, estado) -> list[dict]:
     """
 
     return ejecutar_consulta(sql, {'medico': medico, 'estado': estado})
+
+
+def buscar_turnos_disponibles(medico_id, fecha) -> list[dict]:
+
+    """
+    Busca y devuelve los turnos disponibles de un médico en una fecha determinada.
+    """
+
+    sql = """
+    SELECT id, id_medico, id_consultorio, fecha_hora
+    FROM turnos
+    WHERE id_medico = :medico_id AND estado = 'disponible' AND DATE(fecha_hora) = :fecha
+    ORDER BY fecha_hora
+    """
+
+    return ejecutar_consulta(sql, {'medico_id': medico_id, 'fecha': fecha})
+
+
+def buscar_turno_por_token(string_token) -> dict | None:
+
+    """
+    Busca un turno mediante el token y devuelve sus datos. Si no existe, devuelve None.
+    """
+
+    sql = """
+    SELECT id, id_usuario, id_medico, id_consultorio, fecha_hora, estado, string_token, hora_checkin
+    FROM turnos
+    WHERE string_token = :string_token
+    """
+    filas = ejecutar_consulta(sql, {'string_token': string_token})
+
+    return filas[0] if filas else None
 
 
 def crear_turno(datos: dict) -> dict:
@@ -336,3 +389,243 @@ def actualizar_reserva_turno(turno_id, usuario_id, token) -> dict | None:
         return None 
 
     return turno
+
+
+def actualizar_cancelacion_turno(id, usuario_id, liberar=True) -> dict | None:
+
+    """
+    Cancela un turno reservado que pertenece al paciente indicado y
+    devuelve el resultado. Permitir liberar el horario.
+    """
+
+    turno = buscar_turno_id(id)
+
+    if not turno or turno['estado'] != 'reservado' or turno['id_usuario'] != usuario_id:
+        return None
+
+    sql = """
+    UPDATE turnos
+    SET estado = 'cancelado'
+    WHERE id = :id AND id_usuario = :usuario_id AND estado = 'reservado'
+    """
+    ejecutar_mutacion(sql, {'id': id, 'usuario_id': usuario_id})
+
+    turno = buscar_turno_id(id)
+
+    if liberar:
+        crear_turno({
+            'id_medico': turno['id_medico'],
+            'id_consultorio': turno['id_consultorio'],
+            'fecha_hora': turno['fecha_hora']
+        })
+
+    return turno
+
+# ---------------------------------------------------------------
+# Queries de recepcion
+# ---------------------------------------------------------------
+
+def registrar_checkin(id, hora_llegada) -> dict | None:
+
+    """
+    Cambia el estado de un turno de "reservado" a "confirmado",
+    registra la hora de llegada y devuelve el turno actualizado.
+    """
+
+    turno = buscar_turno_id(id)
+
+    if not turno or turno['estado'] != 'reservado':
+        return None
+
+    sql = """
+    UPDATE turnos
+    SET estado = 'confirmado', hora_checkin = :hora_llegada
+    WHERE id = :id AND estado = 'reservado'
+    """
+    ejecutar_mutacion(sql, {'id': id, 'hora_llegada': hora_llegada})
+
+    turno = buscar_turno_id(id)
+
+    return turno
+
+
+def buscar_turnos_sala_espera(fecha) -> list[dict]:
+
+    """
+    Devuelve los turnos confirmados del dia ordenados por hora de llegada (check-in).
+    """
+    
+    sql = """
+    SELECT turnos.id, turnos.fecha_hora, turnos.hora_checkin,
+    usuarios.dni, usuarios.nombre AS paciente_nombre, usuarios.apellido AS paciente_apellido,
+    medicos.nombre AS medico_nombre, medicos.apellido AS medico_apellido
+    FROM turnos
+    INNER JOIN usuarios ON usuarios.id = turnos.id_usuario
+    INNER JOIN medicos ON medicos.id = turnos.id_medico
+    WHERE turnos.estado = 'confirmado'
+    AND DATE(turnos.fecha_hora) = :fecha
+    ORDER BY turnos.hora_checkin
+    """
+
+    return ejecutar_consulta(sql, {'fecha': fecha})
+
+
+def actualizar_turno_atendido(id) -> dict | None:
+
+    """
+    Cambia el estado de un turno de "confirmado" a "atendido" y devuelve el turno actualizado.
+    """
+
+    turno = buscar_turno_id(id)
+
+    if not turno or turno['estado'] != 'confirmado':
+        return None
+
+    sql = """
+    UPDATE turnos
+    SET estado = 'atendido'
+    WHERE id = :id AND estado = 'confirmado'
+    """
+    ejecutar_mutacion(sql, {'id': id})
+
+    turno = buscar_turno_id(id)
+
+    return turno
+
+
+def marcar_turno_ausente(id) -> dict | None:
+
+    """
+    Cambia el estado de un turno de "reservado" a "ausente" y devuelve el turno actualizado.
+    """
+
+    turno = buscar_turno_id(id)
+
+    if not turno or turno['estado'] != 'reservado':
+        return None
+
+    sql = """
+    UPDATE turnos
+    SET estado = 'ausente'
+    WHERE id = :id AND estado = 'reservado'
+    """
+    ejecutar_mutacion(sql, {'id': id})
+
+    turno = buscar_turno_id(id)
+
+    return turno
+
+# ---------------------------------------------------------------
+# Queries de consultorios
+# ---------------------------------------------------------------
+
+def listar_consultorios() -> list[dict]:
+
+    """
+    Lista todos los consultorios de la base de datos.
+    """
+
+    sql = """
+    SELECT id, nombre, ubicacion, activo
+    FROM consultorios
+    ORDER BY id
+    """
+    return ejecutar_consulta(sql)
+
+
+def obtener_consultorio_por_id(id) -> dict:
+
+    """
+    Recibe un id y muestra el consultorio al que le pertenece el id,
+    si no existe muestra una lista vacia.
+    """
+
+    sql = """
+    SELECT id, nombre, ubicacion, activo
+    FROM consultorios
+    WHERE id = :id
+    """
+    filas = ejecutar_consulta(sql, {'id': id})
+
+    return filas[0] if filas else {}
+
+
+def crear_consultorio(datos: dict) -> int:
+
+    """
+    Recibe datos del nuevo consultorio y lo agrega a la base de datos.
+    """
+
+    sql = """
+    INSERT INTO consultorios (nombre, ubicacion)
+    VALUES (:nombre, :ubicacion)
+    """
+    return ejecutar_mutacion(sql, {
+        'nombre': datos['nombre'],
+        'ubicacion': datos['ubicacion']
+    })
+
+
+def actualizar_consultorio(id, campos: dict) -> dict:
+
+    """
+    Actualiza los campos recibidos del consultorio con el id dado y
+    retorna el consultorio actualizado.
+    """
+
+    if not campos:
+        return obtener_consultorio_por_id(id)
+
+    set_clause = ", ".join(f"{campo} = :{campo}" for campo in campos)
+    sql = f"UPDATE consultorios SET {set_clause} WHERE id = :id"
+    parametros = {**campos, "id": id}
+
+    ejecutar_mutacion(sql, parametros)
+
+    return obtener_consultorio_por_id(id)
+
+
+def baja_consultorio(id) -> dict:
+
+    """
+    Da de baja al consultorio con el id seleccionado y lo retorna actualizado.
+    """
+
+    sql = "UPDATE consultorios SET activo = FALSE WHERE id = :id"
+
+    ejecutar_mutacion(sql, {'id': id})
+
+    return obtener_consultorio_por_id(id)
+
+# ---------------------------------------------------------------
+# Queries de especialidades
+# ---------------------------------------------------------------
+
+def listar_especialidades() -> list[dict]:
+
+    """
+    Lista todas las especialidades de la base de datos.
+    """
+
+    sql = """
+    SELECT id, nombre
+    FROM especialidades
+    ORDER BY nombre
+    """
+
+    return ejecutar_consulta(sql)
+
+
+def crear_especialidad(datos: dict) -> int:
+
+    """
+    Recibe datos de la nueva especialidad y la agrega a la base de datos.
+    """
+
+    sql = """
+    INSERT INTO especialidades (nombre)
+    VALUES (:nombre)
+    """
+    return ejecutar_mutacion(sql, {
+        'nombre': datos['nombre']
+    })
