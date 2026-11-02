@@ -1,37 +1,70 @@
-from sqlalchemy import create_engine, text
-from .constants import DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME
+"""Conexiones a MySQL mediante MySQL Connector/Python y SQL explícito."""
+
+import mysql.connector
+from mysql.connector import MySQLConnection
+from app.constants import (
+    DB_CONNECT_TIMEOUT,
+    DB_HOST,
+    DB_NAME,
+    DB_PASSWORD,
+    DB_PORT,
+    DB_USER,
+)
+
+
+def get_connection() -> MySQLConnection:
+    """Abre una conexión a MySQL con la configuración del entorno.
+
+    Quien use esta función debe cerrar la conexión al terminar. Las consultas
+    deben usar parámetros de Connector/Python (marcadores ``%s``), sin interpolar
+    texto ni recurrir a un ORM.
+    """
+    return mysql.connector.connect(
+        host=DB_HOST,
+        port=DB_PORT,
+        database=DB_NAME,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        connection_timeout=DB_CONNECT_TIMEOUT,
+        charset="utf8mb4",
+        use_unicode=True,
+        autocommit=False,
+    )
 
 # ---------------------------------------------------------------
 # Funciones de soporte genéricas
 # ---------------------------------------------------------------
 
-DB_URL = f'mysql+mysqlconnector://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
-
-def obtener_conexion():
-    """Crea y retorna una nueva conexion a la base de datos."""
-    motor = create_engine(DB_URL)
-    return motor.connect()
-
-def fila_a_dict(fila) -> dict:
-    """Convierte una fila del resultado de una query en un diccionario."""
-    return dict(fila._mapping)
-
 def ejecutar_consulta(sql: str, parametros: dict = None) -> list[dict]:
     """Ejecuta una SELECT y devuelve todas las filas como lista de dicts."""
-    with obtener_conexion() as conexion:
-        resultado = conexion.execute(text(sql), parametros or {})
-        return [fila_a_dict(fila) for fila in resultado]
+    conexion = get_connection()
+    cursor = conexion.cursor(dictionary=True)
+
+    cursor.execute(sql, parametros)
+    filas = cursor.fetchall()
+
+    cursor.close()
+    conexion.close()
+
+    return filas
+
 
 def ejecutar_mutacion(sql: str, parametros: dict = None) -> int:
     """
     Ejecuta un INSERT, UPDATE o DELETE y hace commit.
     Retorna el id autoincremental generado por el INSERT (0 si no aplica).
     """
-    with obtener_conexion() as conexion:
-        with conexion.begin():
-            resultado = conexion.execute(text(sql), parametros or {})
-        return resultado.lastrowid or 0
+    conexion = get_connection()
+    cursor = conexion.cursor()
 
+    cursor.execute(sql, parametros)
+    conexion.commit()
+    id_generado = cursor.lastrowid or 0
+
+    cursor.close()
+    conexion.close()
+
+    return id_generado
 
 # ---------------------------------------------------------------
 # Queries de pacientes
@@ -64,7 +97,7 @@ def obtener_paciente_por_dni(dni) -> dict:
     sql = """
     SELECT id, dni, nombre, apellido, email, activo
     FROM usuarios
-    WHERE dni = :dni AND rol = 'paciente'
+    WHERE dni = %(dni)s AND rol = 'paciente'
     """
     filas = ejecutar_consulta(sql, {'dni': dni})
 
@@ -81,7 +114,7 @@ def obtener_paciente_por_email(email) -> dict:
     sql = """
     SELECT id, dni, nombre, apellido, email, activo
     FROM usuarios
-    WHERE email = :email AND rol = 'paciente'
+    WHERE email = %(email)s AND rol = 'paciente'
     """
     filas = ejecutar_consulta(sql, {'email': email})
 
@@ -96,7 +129,7 @@ def crear_paciente(datos: dict) -> int:
 
     sql = """
     INSERT INTO usuarios (dni, nombre, apellido, email, password_hash, rol)
-    VALUES (:dni, :nombre, :apellido, :email, :password_hash, 'paciente')
+    VALUES (%(dni)s, %(nombre)s, %(apellido)s, %(email)s, %(password_hash)s, 'paciente')
     """
     return ejecutar_mutacion(sql, {
         'dni': datos['dni'],
@@ -123,8 +156,8 @@ def actualizar_paciente(dni, campos: dict) -> dict:
     if not campos_validos:
         return obtener_paciente_por_dni(dni)
  
-    set_clause = ", ".join(f"{campo} = :{campo}" for campo in campos_validos)
-    sql = f"UPDATE usuarios SET {set_clause} WHERE dni = :dni AND rol = 'paciente'"
+    set_clause = ", ".join(f"{campo} = %({campo})s" for campo in campos_validos)
+    sql = f"UPDATE usuarios SET {set_clause} WHERE dni = %(dni)s AND rol = 'paciente'"
     parametros = {**campos_validos, "dni": dni}
  
     ejecutar_mutacion(sql, parametros)
@@ -138,7 +171,7 @@ def baja_paciente(dni) -> dict:
     Da de baja al paciente con el dni seleccionado y lo retorna actualizado.
     """
 
-    sql = "UPDATE usuarios SET activo = FALSE WHERE dni = :dni AND rol = 'paciente'"
+    sql = "UPDATE usuarios SET activo = FALSE WHERE dni = %(dni)s AND rol = 'paciente'"
  
     ejecutar_mutacion(sql, {'dni': dni})
  
@@ -174,7 +207,7 @@ def obtener_medico_por_id(id) -> dict:
     sql = """
     SELECT id, nombre, apellido, matricula, id_consultorio, activo
     FROM medicos
-    WHERE id = :id
+    WHERE id = %(id)s
     """
     filas = ejecutar_consulta(sql, {'id': id})
 
@@ -189,7 +222,7 @@ def crear_medico(datos: dict) -> int:
 
     sql = """
     INSERT INTO medicos (nombre, apellido, matricula, id_consultorio)
-    VALUES (:nombre, :apellido, :matricula, :id_consultorio)
+    VALUES (%(nombre)s, %(apellido)s, %(matricula)s, %(id_consultorio)s)
     """
     return ejecutar_mutacion(sql, {
         'nombre': datos['nombre'],
@@ -215,8 +248,8 @@ def actualizar_medico(id, campos: dict) -> dict:
     if not campos_validos:
         return obtener_medico_por_id(id)
  
-    set_clause = ", ".join(f"{campo} = :{campo}" for campo in campos_validos)
-    sql = f"UPDATE medicos SET {set_clause} WHERE id = :id"
+    set_clause = ", ".join(f"{campo} = %({campo})s" for campo in campos_validos)
+    sql = f"UPDATE medicos SET {set_clause} WHERE id = %(id)s"
     parametros = {**campos_validos, "id": id}
  
     ejecutar_mutacion(sql, parametros)
@@ -230,7 +263,7 @@ def baja_medico(id) -> dict:
     Da de baja al medico con el id seleccionado y lo retorna actualizado.
     """
 
-    sql = "UPDATE medicos SET activo = FALSE WHERE id = :id"
+    sql = "UPDATE medicos SET activo = FALSE WHERE id = %(id)s"
  
     ejecutar_mutacion(sql, {'id': id})
  
@@ -263,7 +296,7 @@ def buscar_turno_id(id):
     sql = """
     SELECT id, id_usuario, id_medico, id_consultorio, fecha_hora, estado, string_token, hora_checkin
     FROM turnos
-    WHERE id = :id
+    WHERE id = %(id)s
     """  
     filas = ejecutar_consulta(sql, {'id': id})
     
@@ -284,7 +317,7 @@ def buscar_turno_dni(dni) -> list[dict]:
     INNER JOIN usuarios ON usuarios.id = turnos.id_usuario
     INNER JOIN medicos ON medicos.id = turnos.id_medico
     INNER JOIN consultorios ON consultorios.id = turnos.id_consultorio
-    WHERE usuarios.dni = :dni
+    WHERE usuarios.dni = %(dni)s
     ORDER BY turnos.fecha_hora
     """
     
@@ -301,7 +334,7 @@ def buscar_turno_por_medico(medico, estado) -> list[dict]:
     sql = """
     SELECT id, id_usuario, id_medico, id_consultorio, fecha_hora, estado
     FROM turnos
-    WHERE id_medico = :medico AND estado = :estado
+    WHERE id_medico = %(medico)s AND estado = %(estado)s
     """
 
     return ejecutar_consulta(sql, {'medico': medico, 'estado': estado})
@@ -316,7 +349,7 @@ def buscar_turnos_disponibles(medico_id, fecha) -> list[dict]:
     sql = """
     SELECT id, id_medico, id_consultorio, fecha_hora
     FROM turnos
-    WHERE id_medico = :medico_id AND estado = 'disponible' AND DATE(fecha_hora) = :fecha
+    WHERE id_medico = %(medico_id)s AND estado = 'disponible' AND DATE(fecha_hora) = %(fecha)s
     ORDER BY fecha_hora
     """
 
@@ -332,7 +365,7 @@ def buscar_turno_por_token(string_token) -> dict | None:
     sql = """
     SELECT id, id_usuario, id_medico, id_consultorio, fecha_hora, estado, string_token, hora_checkin
     FROM turnos
-    WHERE string_token = :string_token
+    WHERE string_token = %(string_token)s
     """
     filas = ejecutar_consulta(sql, {'string_token': string_token})
 
@@ -349,7 +382,7 @@ def crear_turno(datos: dict) -> dict | None:
     sql_existe = """
     SELECT id
     FROM turnos
-    WHERE id_medico = :id_medico AND fecha_hora = :fecha_hora
+    WHERE id_medico = %(id_medico)s AND fecha_hora = %(fecha_hora)s
     """
     filas = ejecutar_consulta(sql_existe, {
         'id_medico': datos['id_medico'],
@@ -361,7 +394,7 @@ def crear_turno(datos: dict) -> dict | None:
 
     sql = """
     INSERT INTO turnos (id_medico, id_consultorio, fecha_hora)
-    VALUES (:id_medico, :id_consultorio, :fecha_hora)
+    VALUES (%(id_medico)s, %(id_consultorio)s, %(fecha_hora)s)
     """
     id_turno = ejecutar_mutacion(sql, {
         'id_medico': datos['id_medico'],
@@ -388,8 +421,8 @@ def actualizar_reserva_turno(turno_id, usuario_id, token) -> dict | None:
 
     sql = """
     UPDATE turnos
-    SET id_usuario = :usuario_id, string_token = :token, estado = 'reservado'
-    WHERE id = :turno_id AND estado = 'disponible'
+    SET id_usuario = %(usuario_id)s, string_token = %(token)s, estado = 'reservado'
+    WHERE id = %(turno_id)s AND estado = 'disponible'
     """
     ejecutar_mutacion(sql, {
         'usuario_id': usuario_id,
@@ -420,7 +453,7 @@ def actualizar_cancelacion_turno(id, usuario_id, liberar=True) -> dict | None:
     sql = """
     UPDATE turnos
     SET estado = 'cancelado'
-    WHERE id = :id AND id_usuario = :usuario_id AND estado = 'reservado'
+    WHERE id = %(id)s AND id_usuario = %(usuario_id)s AND estado = 'reservado'
     """
     ejecutar_mutacion(sql, {'id': id, 'usuario_id': usuario_id})
 
@@ -453,8 +486,8 @@ def registrar_checkin(id, hora_llegada) -> dict | None:
 
     sql = """
     UPDATE turnos
-    SET estado = 'confirmado', hora_checkin = :hora_llegada
-    WHERE id = :id AND estado = 'reservado'
+    SET estado = 'confirmado', hora_checkin = %(hora_llegada)s
+    WHERE id = %(id)s AND estado = 'reservado'
     """
     ejecutar_mutacion(sql, {'id': id, 'hora_llegada': hora_llegada})
 
@@ -477,7 +510,7 @@ def buscar_turnos_sala_espera(fecha) -> list[dict]:
     INNER JOIN usuarios ON usuarios.id = turnos.id_usuario
     INNER JOIN medicos ON medicos.id = turnos.id_medico
     WHERE turnos.estado = 'confirmado'
-    AND DATE(turnos.fecha_hora) = :fecha
+    AND DATE(turnos.fecha_hora) = %(fecha)s
     ORDER BY turnos.hora_checkin
     """
 
@@ -498,7 +531,7 @@ def actualizar_turno_atendido(id) -> dict | None:
     sql = """
     UPDATE turnos
     SET estado = 'atendido'
-    WHERE id = :id AND estado = 'confirmado'
+    WHERE id = %(id)s AND estado = 'confirmado'
     """
     ejecutar_mutacion(sql, {'id': id})
 
@@ -521,7 +554,7 @@ def marcar_turno_ausente(id) -> dict | None:
     sql = """
     UPDATE turnos
     SET estado = 'ausente'
-    WHERE id = :id AND estado = 'reservado'
+    WHERE id = %(id)s AND estado = 'reservado'
     """
     ejecutar_mutacion(sql, {'id': id})
 
@@ -557,7 +590,7 @@ def obtener_consultorio_por_id(id) -> dict:
     sql = """
     SELECT id, nombre, ubicacion, activo
     FROM consultorios
-    WHERE id = :id
+    WHERE id = %(id)s
     """
     filas = ejecutar_consulta(sql, {'id': id})
 
@@ -572,7 +605,7 @@ def crear_consultorio(datos: dict) -> int:
 
     sql = """
     INSERT INTO consultorios (nombre, ubicacion)
-    VALUES (:nombre, :ubicacion)
+    VALUES (%(nombre)s, %(ubicacion)s)
     """
     return ejecutar_mutacion(sql, {
         'nombre': datos['nombre'],
@@ -590,8 +623,8 @@ def actualizar_consultorio(id, campos: dict) -> dict:
     if not campos:
         return obtener_consultorio_por_id(id)
 
-    set_clause = ", ".join(f"{campo} = :{campo}" for campo in campos)
-    sql = f"UPDATE consultorios SET {set_clause} WHERE id = :id"
+    set_clause = ", ".join(f"{campo} = %({campo})s" for campo in campos)
+    sql = f"UPDATE consultorios SET {set_clause} WHERE id = %(id)s"
     parametros = {**campos, "id": id}
 
     ejecutar_mutacion(sql, parametros)
@@ -605,7 +638,7 @@ def baja_consultorio(id) -> dict:
     Da de baja al consultorio con el id seleccionado y lo retorna actualizado.
     """
 
-    sql = "UPDATE consultorios SET activo = FALSE WHERE id = :id"
+    sql = "UPDATE consultorios SET activo = FALSE WHERE id = %(id)s"
 
     ejecutar_mutacion(sql, {'id': id})
 
@@ -638,7 +671,7 @@ def crear_especialidad(datos: dict) -> int:
 
     sql = """
     INSERT INTO especialidades (nombre)
-    VALUES (:nombre)
+    VALUES (%(nombre)s)
     """
     return ejecutar_mutacion(sql, {
         'nombre': datos['nombre']
@@ -654,7 +687,7 @@ def asociar_medico_especialidad(datos: dict) -> int:
 
     sql = """
     INSERT INTO medicos_especialidades (id_medico, id_especialidad)
-    VALUES (:id_medico, :id_especialidad)
+    VALUES (%(id_medico)s, %(id_especialidad)s)
     """
     return ejecutar_mutacion(sql, {
         'id_medico': datos['id_medico'],
