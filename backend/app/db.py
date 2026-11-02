@@ -339,11 +339,25 @@ def buscar_turno_por_token(string_token) -> dict | None:
     return filas[0] if filas else None
 
 
-def crear_turno(datos: dict) -> dict:
+def crear_turno(datos: dict) -> dict | None:
 
     """
-    Recibe datos del nuevo turno y lo agrega a la base de datos.
+    Recibe datos del nuevo turno y lo agrega a la base de datos, si el medico ya
+    tiene un turno en ese horario retorna None.
     """
+
+    sql_existe = """
+    SELECT id
+    FROM turnos
+    WHERE id_medico = :id_medico AND fecha_hora = :fecha_hora
+    """
+    filas = ejecutar_consulta(sql_existe, {
+        'id_medico': datos['id_medico'],
+        'fecha_hora': datos['fecha_hora']
+    })
+
+    if filas:
+        return None
 
     sql = """
     INSERT INTO turnos (id_medico, id_consultorio, fecha_hora)
@@ -628,4 +642,21 @@ def crear_especialidad(datos: dict) -> int:
     """
     return ejecutar_mutacion(sql, {
         'nombre': datos['nombre']
+    })
+
+
+def asociar_medico_especialidad(datos: dict) -> int:
+
+    """
+    Recibe el id de un medico y el id de una especialidad y asigna la especialidad
+    al medico en la base de datos.
+    """
+
+    sql = """
+    INSERT INTO medicos_especialidades (id_medico, id_especialidad)
+    VALUES (:id_medico, :id_especialidad)
+    """
+    return ejecutar_mutacion(sql, {
+        'id_medico': datos['id_medico'],
+        'id_especialidad': datos['id_especialidad']
     })
