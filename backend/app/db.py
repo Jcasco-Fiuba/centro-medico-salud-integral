@@ -182,7 +182,7 @@ def baja_paciente(dni) -> dict:
 # Queries de medicos
 # ---------------------------------------------------------------
 
-CAMPOS_EDITABLES_MEDICO = {'nombre', 'apellido', 'id_consultorio'}
+CAMPOS_EDITABLES_MEDICO = {'nombre', 'apellido', 'matricula', 'id_consultorio'}
 
 def listar_medicos() -> list[dict]:
 
@@ -269,6 +269,32 @@ def baja_medico(id) -> dict:
     ejecutar_mutacion(sql, {'id': id})
  
     return obtener_medico_por_id(id)
+
+def listar_especialidades_por_medico(id_medico) -> list[dict]:
+
+    """
+    Recibe el id de un medico y devuelve sus especialidades.
+    """
+
+    sql = """
+    SELECT especialidades.id, especialidades.nombre
+    FROM especialidades
+    INNER JOIN medicos_especialidades
+        ON medicos_especialidades.id_especialidad = especialidades.id
+    WHERE medicos_especialidades.id_medico = %(id_medico)s
+    ORDER BY especialidades.nombre
+    """
+    return ejecutar_consulta(sql, {'id_medico': id_medico})
+
+
+def borrar_especialidades_medico(id_medico) -> int:
+
+    """
+    Recibe el id de un medico y le quita todas sus especialidades.
+    """
+
+    sql = "DELETE FROM medicos_especialidades WHERE id_medico = %(id_medico)s"
+    return ejecutar_mutacion(sql, {'id_medico': id_medico})
 
 # ---------------------------------------------------------------
 # Queries de turnos
