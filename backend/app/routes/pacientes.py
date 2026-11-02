@@ -1,11 +1,12 @@
-
 from flask import Blueprint, request, jsonify
 
 from app.constants import BASE_URL
 from app.services.pacientes import (
     obtener_paciente,
+    listar_pacientes,
     registrar_paciente,
-    actualizar_paciente
+    actualizar_paciente,
+    dar_baja_paciente
 )
 
 
@@ -56,3 +57,13 @@ def modificar_paciente(dni):
         return jsonify({"error": "Error interno del servidor"}), 500
 
     return jsonify(respuesta), codigo
+
+
+@pacientes_bp.route("/pacientes", methods=["GET"])
+def listar():
+    return listar_pacientes()
+
+
+@pacientes_bp.route("/pacientes/<dni>/baja", methods=["PATCH"])
+def baja(dni):
+    return dar_baja_paciente(dni)
