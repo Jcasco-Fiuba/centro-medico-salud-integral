@@ -2,6 +2,7 @@
 
 import mysql.connector
 from mysql.connector import MySQLConnection
+
 from app.constants import (
     DB_CONNECT_TIMEOUT,
     DB_HOST,
