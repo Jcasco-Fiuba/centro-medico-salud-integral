@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Centro Médico Salud Integral{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    {% block page_css %}{% endblock %}
+  </head>
+  <body>
+    {% block body %}{% endblock %}
+    <script src="{{ url_for('static', filename='js/base.js') }}" defer></script>
+    {% block page_js %}{% endblock %}
+  </body>
+</html>
