@@ -1,3 +1,39 @@
 :root {
-  /* Tokens compartidos del sistema visual se definirán con el equipo. */
+  /* Paleta inicial compartida; ajustar en conjunto si el Figma evoluciona. */
+  color-scheme: light;
+
+  --color-primary: #216477;
+  --color-primary-hover: #174e5e;
+  --color-primary-soft: #e9f2f5;
+  --color-text: #18333d;
+  --color-text-muted: #5e747c;
+  --color-surface: #ffffff;
+  --color-page: #f3f7f8;
+  --color-border: #d7e2e6;
+  --color-success: #256b4b;
+  --color-success-soft: #eaf5ef;
+  --color-warning: #805d16;
+  --color-warning-soft: #fff6df;
+  --color-danger: #a33131;
+  --color-danger-soft: #fff0f0;
+  --color-focus: #1683a0;
+
+  --font-family-base: Inter, "Segoe UI", Arial, sans-serif;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.75rem;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --shadow-card: 0 1px 3px rgb(24 51 61 / 8%);
+  --content-width: 72rem;
 }

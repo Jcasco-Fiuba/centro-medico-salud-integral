@@ -3,14 +3,16 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="{% block meta_description %}Centro Médico Salud Integral{% endblock %}">
     <title>{% block title %}Centro Médico Salud Integral{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
     {% block page_css %}{% endblock %}
   </head>
-  <body>
+  <body class="{% block body_class %}{% endblock %}">
     {% block body %}{% endblock %}
     <script src="{{ url_for('static', filename='js/base.js') }}" defer></script>
-    {% block page_js %}{% endblock %}
+    {% block page_scripts %}{% endblock %}
   </body>
 </html>
