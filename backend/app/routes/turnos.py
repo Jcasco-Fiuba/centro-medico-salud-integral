@@ -104,16 +104,22 @@ def patch_atender_turno(id):
 @turnos_bp.route("/api/turnos/<int:id>/cancelar", methods=["PATCH"])
 def patch_cancelar_turno(id):
 
+    usuario = getattr(g, "usuario", None)
+
+    if usuario is None:
+        return jsonify({"error": "Debes iniciar sesion"}), 401
+
     try:
-        turno = cancelar_turno(id)
+        turno = cancelar_turno(id, usuario["id"])
+    except PermissionError as e:
+        return jsonify({"error": str(e)}), 403
     except ValueError as e:
-     return jsonify({"error": str(e)}), 400
+        return jsonify({"error": str(e)}), 400
 
     if turno is None:
-     return jsonify({"error": "Turno no encontrado"}), 404
+        return jsonify({"error": "Turno no encontrado"}), 404
 
     return jsonify(turno), 200
-
 
 
 @turnos_bp.route("/api/turnos/reservar", methods=["POST"])

@@ -3,7 +3,12 @@ import secrets
 import io
 import qrcode
 
-from app import db
+
+from app.repository import turnos as repo_turno
+from app import db as repo_medicos
+from app import db as repo_consultorios
+#from app.repository import medicos as repo_medicos
+#from app.repository import consultorios as repo_consultorios
 
 from app.validators.turnos import (
     validar_get_turnos,
@@ -14,7 +19,7 @@ from app.validators.turnos import (
 )
 
 def obtener_turno(id):
-    turno = db.buscar_turno_id(id)
+    turno = repo_turno.buscar_turno_id(id)
     if not turno:
         return None
     return turno
@@ -31,7 +36,7 @@ def listar_turnos(medico, estado):
     if errores:
         raise ValueError("; ".join(errores))
 
-    turnos = db.listar_turnos(medico, estado)
+    turnos = repo_turno.listar_turnos(medico, estado)
     return turnos
 def crear_turno(datos):
     errores = validar_post_turno(datos)
@@ -42,13 +47,18 @@ def crear_turno(datos):
     id_consultorio = datos["id_consultorio"]
     fecha_hora = datos["fecha_hora"]
 
-    medico = db.obtener_medico_por_id(id_medico)
+    fecha = datetime.strptime(fecha_hora, "%Y-%m-%d %H:%M:%S")
+
+    if fecha < datetime.now():
+        return None, "No se puede crear un turno en el pasado"
+
+    medico = repo_medicos.obtener_medico_por_id(id_medico)
     if not medico:
         return None, "El medico no existe"
     if not medico["activo"]:
         return None, "El medico no esta disponible"
 
-    consultorio = db.obtener_consultorio_por_id(id_consultorio)
+    consultorio = repo_consultorios.obtener_consultorio_por_id(id_consultorio)
     if not consultorio:
         return None, "El consultorio no existe"
     if not consultorio["activo"]:
@@ -56,10 +66,15 @@ def crear_turno(datos):
     if medico["id_consultorio"] != id_consultorio:
         return None, "El medico no atiende en ese consultorio"
 
-    if db.buscar_turnos_superpuestos(id_medico, id_consultorio, fecha_hora):
+    if repo_turno.verificar_turnos_superpuestos(id_medico, id_consultorio, fecha):
         return None, "Ya existe un turno en ese horario"
 
-    turno = db.crear_turno(datos)
+    datos["fecha_hora"] = fecha
+    turno = repo_turno.crear_turno(datos)
+
+    if not turno:
+        return None, "No se pudo crear el turno"
+
     return turno, None
 
 def _generar_qr_png(dato: str) -> bytes:
@@ -74,7 +89,7 @@ def reservar_turno(datos, usuario_id):
         return None, "; ".join(errores)
 
     turno_id = datos["turno_id"]
-    turno = db.buscar_turno_id(turno_id)
+    turno = repo_turno.buscar_turno_id(turno_id)
 
     if not turno:
         return None, "El turno no existe"
@@ -86,7 +101,7 @@ def reservar_turno(datos, usuario_id):
         return None, "No se puede reservar un turno que ya paso"
 
     token = secrets.token_urlsafe(32)
-    turno_reservado = db.actualizar_reserva_turno(turno_id, usuario_id, token)
+    turno_reservado = repo_turno.actualizar_reserva_turno(turno_id, usuario_id, token)
 
     if turno_reservado is None:
         return None, "El turno no esta disponible"
@@ -106,30 +121,30 @@ def listar_turnos_disponibles(medico, fecha):
     if errores:
         raise ValueError("; ".join(errores))
 
-    turnos = db.buscar_turnos_disponibles(int(medico), fecha)
+    turnos = repo_turno.buscar_turnos_disponibles(int(medico), fecha)
     return turnos
 
 def listar_sala_espera():
     fecha = datetime.now().date()
-    turnos = db.buscar_turnos_sala_espera(fecha)
+    turnos = repo_turno.buscar_turnos_sala_espera(fecha)
     return turnos
 
 def atender_turno(id):
-    turno = db.buscar_turno_id(id)
+    turno = repo_turno.buscar_turno_id(id)
     if not turno:
         return None
 
     if turno["estado"] != "confirmado":
         raise ValueError("El turno no esta confirmado")
 
-    turno_actualizado = db.actualizar_turno_atendido(id)
+    turno_actualizado = repo_turno.actualizar_turno_atendido(id)
     if turno_actualizado is None:
         raise ValueError("No se pudo atender el turno")
 
     return turno_actualizado
 
 def cancelar_turno(id, usuario_id):
-    turno = db.buscar_turno_id(id)
+    turno = repo_turno.buscar_turno_id(id)
 
     if not turno:
         return None
@@ -138,7 +153,7 @@ def cancelar_turno(id, usuario_id):
     if turno["estado"] != "reservado":
         raise ValueError("El turno no esta reservado")
 
-    turno_cancelado = db.actualizar_cancelacion_turno(id, usuario_id)
+    turno_cancelado = repo_turno.actualizar_cancelacion_turno(id, usuario_id)
 
     if turno_cancelado is None:
         raise ValueError("No se pudo cancelar el turno")
@@ -151,7 +166,7 @@ def realizar_checkin(datos):
         raise ValueError("; ".join(errores))
 
     token = datos["string_token"]
-    turno = db.buscar_turno_por_token(token)
+    turno = repo_turno.buscar_turno_por_token(token)
 
     if turno is None:
         return None
@@ -165,12 +180,12 @@ def realizar_checkin(datos):
         raise ValueError("Todavia es temprano para hacer el check-in")
 
     if ahora > fecha_turno + timedelta(minutes=15):
-        turno_ausente = db.marcar_turno_ausente(turno["id"])
+        turno_ausente = repo_turno.marcar_turno_ausente(turno["id"])
         if turno_ausente is None:
             raise ValueError("No se pudo registrar la ausencia")
         return turno_ausente
 
-    turno_confirmado = db.registrar_checkin(turno["id"], ahora)
+    turno_confirmado = repo_turno.registrar_checkin(turno["id"], ahora)
     if turno_confirmado is None:
         raise ValueError("No se pudo registrar el check-in")
 
