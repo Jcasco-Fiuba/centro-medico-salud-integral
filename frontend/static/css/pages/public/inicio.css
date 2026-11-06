@@ -1,0 +1,42 @@
+.public-home {
+  min-height: 100vh;
+  padding: var(--space-4) max(var(--space-4), calc((100vw - 80rem) / 2));
+  background: var(--color-page);
+  color: var(--color-text);
+}
+
+.public-home__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.public-home__content {
+  max-width: 42rem;
+  margin: 18vh auto 0;
+  text-align: center;
+}
+
+.public-home__eyebrow {
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.public-home__content h1 {
+  margin-bottom: var(--space-3);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+}
+
+.public-home__content p {
+  color: var(--color-text-muted);
+}
+
+.public-home__action {
+  display: inline-block;
+  margin-top: var(--space-4);
+}
