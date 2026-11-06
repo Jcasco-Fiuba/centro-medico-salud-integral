@@ -1,0 +1,10 @@
+/* La pantalla de registro reutiliza los componentes visuales del login. */
+@import url("./login.css");
+
+.login-card {
+  max-width: 32rem;
+}
+
+.login-form {
+  gap: var(--space-3);
+}

@@ -10,3 +10,9 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 def iniciar_sesion():
     """Muestra la pantalla de inicio de sesión."""
     return render_template("auth/login.html")
+
+
+@auth_bp.get("/registro")
+def registrarse():
+    """Muestra el formulario de registro de pacientes."""
+    return render_template("auth/registro.html")
