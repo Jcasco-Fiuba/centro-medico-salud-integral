@@ -31,34 +31,163 @@
           <div class="col-12 col-sm-10 col-md-8 col-lg-5">
             <section class="login-card mx-auto" aria-labelledby="register-title">
               <header class="login-card__header">
-                <h1 id="register-title" class="login-card__title">Crear cuenta</h1>
-                <p class="login-card__subtitle mb-0">Completá tus datos para registrarte como paciente.</p>
+                <h1 id="register-title" class="login-card__title">Creá tu cuenta</h1>
+                <p class="login-card__subtitle mb-0">
+                  Completá tus datos para gestionar tus turnos.
+                </p>
               </header>
 
-              <form class="login-form" action="#" method="post">
-                <div class="login-field">
-                  <label for="nombre" class="login-field__label">Nombre y apellido</label>
-                  <input type="text" id="nombre" name="nombre" class="login-field__input" autocomplete="name" required>
+              <form class="login-form" action="#" method="post" data-register-form>
+                <div class="login-field-group">
+                  <div class="login-field">
+                    <label for="nombre" class="login-field__label">Nombre</label>
+                    <input
+                      type="text"
+                      id="nombre"
+                      name="nombre"
+                      class="login-field__input"
+                      placeholder="Ingresá tu nombre"
+                      autocomplete="given-name"
+                      aria-describedby="nombre-error"
+                      required
+                    >
+                  </div>
+                  <p id="nombre-error" class="login-field__error mb-0" role="alert" hidden>
+                    ! Ingresá tu nombre.
+                  </p>
                 </div>
-                <div class="login-field">
-                  <label for="email" class="login-field__label">Correo electrónico</label>
-                  <input type="email" id="email" name="email" class="login-field__input" placeholder="nombre@dominio.com" autocomplete="email" required>
+
+                <div class="login-field-group">
+                  <div class="login-field">
+                    <label for="apellido" class="login-field__label">Apellido</label>
+                    <input
+                      type="text"
+                      id="apellido"
+                      name="apellido"
+                      class="login-field__input"
+                      placeholder="Ingresá tu apellido"
+                      autocomplete="family-name"
+                      aria-describedby="apellido-error"
+                      required
+                    >
+                  </div>
+                  <p id="apellido-error" class="login-field__error mb-0" role="alert" hidden>
+                    ! Ingresá tu apellido.
+                  </p>
                 </div>
-                <div class="login-field">
-                  <label for="telefono" class="login-field__label">Teléfono</label>
-                  <input type="tel" id="telefono" name="telefono" class="login-field__input" autocomplete="tel" required>
+
+                <div class="login-field-group">
+                  <div class="login-field">
+                    <label for="dni" class="login-field__label">DNI</label>
+                    <input
+                      type="text"
+                      id="dni"
+                      name="dni"
+                      class="login-field__input"
+                      placeholder="Ingresá tu DNI"
+                      inputmode="numeric"
+                      pattern="[0-9]{7,8}"
+                      minlength="7"
+                      maxlength="8"
+                      autocomplete="off"
+                      aria-describedby="dni-error"
+                      required
+                    >
+                  </div>
+                  <p id="dni-error" class="login-field__error mb-0" role="alert" hidden>
+                    ! Ingresá tu DNI.
+                  </p>
                 </div>
-                <div class="login-field">
-                  <label for="password" class="login-field__label">Contraseña</label>
-                  <input type="password" id="password" name="password" class="login-field__input" autocomplete="new-password" required>
+
+                <div class="login-field-group">
+                  <div class="login-field">
+                    <label for="email" class="login-field__label">Correo electrónico</label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      class="login-field__input"
+                      placeholder="nombre@dominio.com"
+                      autocomplete="email"
+                      aria-describedby="email-error"
+                      required
+                    >
+                  </div>
+                  <p id="email-error" class="login-field__error mb-0" role="alert" hidden>
+                    ! Ingresá tu correo electrónico.
+                  </p>
                 </div>
-                <div class="login-field">
-                  <label for="confirmar-password" class="login-field__label">Confirmar contraseña</label>
-                  <input type="password" id="confirmar-password" name="confirmar_password" class="login-field__input" autocomplete="new-password" required>
+
+                <div class="login-field-group">
+                  <div class="login-field">
+                    <label for="password" class="login-field__label">Contraseña</label>
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      class="login-field__input"
+                      placeholder="Ingresá tu contraseña"
+                      autocomplete="new-password"
+                      minlength="8"
+                      aria-describedby="password-hint password-error"
+                      required
+                    >
+                  </div>
+                  <p id="password-hint" class="login-field__hint mb-0">
+                    Usá un mínimo de 8 caracteres.
+                  </p>
+                  <p id="password-error" class="login-field__error mb-0" role="alert" hidden>
+                    ! Ingresá tu contraseña.
+                  </p>
                 </div>
-                <button type="submit" class="button login-submit w-100">Crear cuenta</button>
+
+                <div class="login-field-group">
+                  <div class="login-field">
+                    <label for="repetir-password" class="login-field__label">Repetir contraseña</label>
+                    <input
+                      type="password"
+                      id="repetir-password"
+                      name="repetir_password"
+                      class="login-field__input"
+                      placeholder="Volvé a ingresar tu contraseña"
+                      autocomplete="new-password"
+                      minlength="8"
+                      aria-describedby="repetir-password-error"
+                      required
+                    >
+                  </div>
+                  <p id="repetir-password-error" class="login-field__error mb-0" role="alert" hidden>
+                    ! Repetí tu contraseña.
+                  </p>
+                </div>
+
+                <div class="login-field-group login-terms-group">
+                  <div class="login-remember d-flex align-items-center">
+                    <input
+                      type="checkbox"
+                      id="terminos"
+                      name="terminos"
+                      class="login-remember__input"
+                      aria-describedby="terminos-error"
+                      required
+                    >
+                    <label for="terminos" class="login-remember__label">
+                      Acepto los términos y condiciones y la política de privacidad.
+                    </label>
+                  </div>
+                  <p id="terminos-error" class="login-field__error mb-0" role="alert" hidden>
+                    ! Para crear tu cuenta, aceptá los términos y la política de privacidad.
+                  </p>
+                </div>
+
+                <button type="submit" class="button login-submit w-100">
+                  Crear cuenta
+                </button>
+
                 <p class="login-register text-center mb-0">
-                  <a href="{{ url_for('auth.iniciar_sesion') }}" class="login-register__link">¿Ya tenés cuenta? Iniciar sesión</a>
+                  <a href="{{ url_for('auth.iniciar_sesion') }}" class="login-register__link">
+                    ¿Ya tenés cuenta? Iniciar sesión
+                  </a>
                 </p>
               </form>
             </section>
@@ -74,4 +203,8 @@
       </div>
     </footer>
   </div>
+{% endblock %}
+
+{% block page_scripts %}
+  <script src="{{ url_for('static', filename='js/pages/auth/registro.js') }}" defer></script>
 {% endblock %}
