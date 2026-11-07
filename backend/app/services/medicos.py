@@ -1,7 +1,7 @@
 """Servicios para el módulo de médicos."""
 
 from mysql.connector import errors
-from app import db
+from app.repository import medicos as db
 
 
 
@@ -30,17 +30,17 @@ def obtener_medico(id_medico: int):
     medico = db.obtener_medico_por_id(id_medico)
     if medico is None:
         return None
-    
+
     medico["especialidades"] = db.listar_especialidades_por_medico(id_medico)
     return medico
-    
- 
+
+
 def crear_medico(datos: dict) -> dict:
     """crea el médico , lo asocia a su/s especialidad/es y lo devuelve completo."""
     try:
         id_medico = db.crear_medico(datos)
         for id_especialidad in datos["especialidades"]:
-            db.asociar_medico_a_especialidad({
+            db.asociar_medico_especialidad({
                 "id_medico": id_medico,
                 "id_especialidad": id_especialidad
             })
