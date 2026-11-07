@@ -1,6 +1,4 @@
-
 def validar_dni(dni):
-    """Valida que el DNI tenga entre 7 y 8 digitos numericos."""
 
     if len(dni) < 7 or len(dni) > 8:
         raise ValueError("El DNI debe tener entre 7 y 8 digitos")
@@ -10,10 +8,9 @@ def validar_dni(dni):
 
 
 def validar_nombre(nombre):
-    """Valida la longitud del nombre y que contenga solo letras y espacios."""
 
-    if len(nombre.strip()) == 0 or len(nombre) > 50:
-        raise ValueError("El nombre debe tener entre 1 y 50 caracteres")
+    if len(nombre.strip()) == 0 or len(nombre) > 100:
+        raise ValueError("El nombre debe tener entre 1 y 100 caracteres")
 
     for caracter in nombre:
         if not caracter.isalpha() and caracter != " ":
@@ -21,7 +18,6 @@ def validar_nombre(nombre):
 
 
 def validar_email(email):
-    """Valida el formato y la estructura de una direccion de email."""
 
     if len(email) == 0 or len(email) > 100:
         raise ValueError("El email debe tener entre 1 y 100 caracteres")
@@ -60,11 +56,16 @@ def validar_email(email):
         raise ValueError("La extension del email no es valida")
 
 
+def validar_password(password):
+
+    if len(password) < 8 or len(password) > 50:
+        raise ValueError("La contrasena debe tener entre 8 y 50 caracteres")
+
+
 def validar_registro_paciente(datos):
-    """Valida los campos obligatorios y los datos para registrar un paciente."""
 
     errores = []
-    campos = ["dni", "nombre", "apellido", "email"]
+    campos = ["dni", "nombre", "apellido", "email", "password"]
 
     if type(datos) != dict:
         return ["Los datos deben ser un objeto"]
@@ -86,6 +87,8 @@ def validar_registro_paciente(datos):
                     validar_dni(datos[campo])
                 elif campo == "email":
                     validar_email(datos[campo])
+                elif campo == "password":
+                    validar_password(datos[campo])
                 else:
                     validar_nombre(datos[campo])
 
@@ -96,7 +99,6 @@ def validar_registro_paciente(datos):
 
 
 def validar_actualizacion_paciente(datos):
-    """Valida los campos permitidos y sus valores al actualizar un paciente."""
 
     errores = []
     campos = ["nombre", "apellido", "email"]
@@ -128,3 +130,13 @@ def validar_actualizacion_paciente(datos):
     return errores
 
 
+def validar_baja_paciente(dni):
+
+    errores = []
+
+    try:
+        validar_dni(dni)
+    except ValueError as error:
+        errores.append(str(error))
+
+    return errores
