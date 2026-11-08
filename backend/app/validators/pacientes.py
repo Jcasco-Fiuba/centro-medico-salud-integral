@@ -3,7 +3,7 @@ def validar_dni(dni):
     if len(dni) < 7 or len(dni) > 8:
         raise ValueError("El DNI debe tener entre 7 y 8 digitos")
 
-    if not dni.isdigit():
+    if not (dni.isascii() and dni.isdigit()):
         raise ValueError("El DNI debe contener solo numeros")
 
 

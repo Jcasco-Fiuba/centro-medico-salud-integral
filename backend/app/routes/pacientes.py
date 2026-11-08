@@ -15,7 +15,6 @@ pacientes_bp = Blueprint("pacientes", __name__, url_prefix=BASE_URL)
 
 @pacientes_bp.route("/pacientes/<dni>", methods=["GET"])
 def consultar_paciente(dni):
-    """Consulta los datos de un paciente por su DNI."""
 
     try:
         respuesta, codigo = obtener_paciente(dni)
@@ -27,8 +26,6 @@ def consultar_paciente(dni):
 
 @pacientes_bp.route("/pacientes", methods=["POST"])
 def crear_paciente():
-    """Registra un nuevo paciente."""
-
     datos = request.get_json(silent=True)
 
     if type(datos) != dict:
@@ -44,7 +41,6 @@ def crear_paciente():
 
 @pacientes_bp.route("/pacientes/<dni>", methods=["PATCH"])
 def modificar_paciente(dni):
-    """Actualiza los datos de un paciente por su DNI."""
 
     datos = request.get_json(silent=True)
 
@@ -61,9 +57,21 @@ def modificar_paciente(dni):
 
 @pacientes_bp.route("/pacientes", methods=["GET"])
 def listar():
-    return listar_pacientes()
+
+    try:
+        respuesta, codigo = listar_pacientes()
+    except Exception:
+        return jsonify({"error": "Error interno del servidor"}), 500
+
+    return jsonify(respuesta), codigo
 
 
 @pacientes_bp.route("/pacientes/<dni>/baja", methods=["PATCH"])
 def baja(dni):
-    return dar_baja_paciente(dni)
+
+    try:
+        respuesta, codigo = dar_baja_paciente(dni)
+    except Exception:
+        return jsonify({"error": "Error interno del servidor"}), 500
+
+    return jsonify(respuesta), codigo
