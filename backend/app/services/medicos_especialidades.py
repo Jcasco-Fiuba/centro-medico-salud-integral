@@ -17,7 +17,7 @@ def registrar_especialidad(datos):
     if len(errores) > 0:
         return {"errores": errores}, 400
 
-    nombre = datos["nombre"]
+    nombre = datos["nombre"].strip()
 
     if obtener_especialidad_por_nombre(nombre):
         return {"error": "La especialidad ya esta registrada"}, 409

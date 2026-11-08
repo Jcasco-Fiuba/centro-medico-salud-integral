@@ -22,7 +22,9 @@ def obtener_consultorio(id_consultorio):
     if not validar_id_consultorio(id_consultorio):
         return {"error": "El ID del consultorio no es valido"}, 400
 
-    consultorio = obtener_consultorio_por_id(int(id_consultorio))
+    id_consultorio = int(id_consultorio)
+
+    consultorio = obtener_consultorio_por_id(id_consultorio)
 
     if not consultorio:
         return {"error": "Consultorio no encontrado"}, 404
@@ -37,8 +39,8 @@ def registrar_consultorio(datos):
         return {"errores": errores}, 400
 
     nuevo_consultorio = {
-        "nombre": datos["nombre"],
-        "ubicacion": datos["ubicacion"],
+        "nombre": datos["nombre"].strip(),
+        "ubicacion": datos["ubicacion"].strip(),
         "activo": True
     }
 
@@ -54,17 +56,24 @@ def actualizar_consultorio(id_consultorio, datos):
     if not validar_id_consultorio(id_consultorio):
         return {"error": "El ID del consultorio no es valido"}, 400
 
+    id_consultorio = int(id_consultorio)
+
     errores = validar_actualizacion_consultorio(datos)
 
     if len(errores) > 0:
         return {"errores": errores}, 400
 
-    consultorio = obtener_consultorio_por_id(int(id_consultorio))
+    consultorio = obtener_consultorio_por_id(id_consultorio)
 
     if not consultorio:
         return {"error": "Consultorio no encontrado"}, 404
 
-    actualizado = actualizar_consultorio_db(int(id_consultorio), datos)
+    cambios = {}
+
+    for campo in datos:
+        cambios[campo] = datos[campo].strip()
+
+    actualizado = actualizar_consultorio_db(id_consultorio, cambios)
 
     if not actualizado:
         return {"error": "No se pudo actualizar el consultorio"}, 404
@@ -78,12 +87,14 @@ def dar_de_baja_consultorio(id_consultorio):
     if not validar_id_consultorio(id_consultorio):
         return {"error": "El ID del consultorio no es valido"}, 400
 
-    consultorio = obtener_consultorio_por_id(int(id_consultorio))
+    id_consultorio = int(id_consultorio)
+
+    consultorio = obtener_consultorio_por_id(id_consultorio)
 
     if not consultorio:
         return {"error": "Consultorio no encontrado"}, 404
 
-    baja_consultorio_db(int(id_consultorio))
+    baja_consultorio_db(id_consultorio)
 
     return {
         "mensaje": "Consultorio dado de baja correctamente"
