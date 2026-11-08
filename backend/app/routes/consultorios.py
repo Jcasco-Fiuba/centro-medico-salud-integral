@@ -1,65 +1,112 @@
 """Rutas y endpoints para la entidad Consultorios."""
 
-from flask import Blueprint, jsonify, request
+from app.validators.consultorios import (
+    validar_id_consultorio,
+    validar_registro_consultorio,
+    validar_actualizacion_consultorio
+)
 
-from app.constants import BASE_URL
-from app.services import consultorios as consultorios_service
-
-consultorios_bp = Blueprint("consultorios", __name__, url_prefix=BASE_URL)
-
-
-@consultorios_bp.route("/consultorios", methods=["GET"])
-def get_consultorios():
-
-    try:
-        respuesta, status = consultorios_service.listar_consultorios()
-    except Exception:
-        return jsonify({"error": "Error interno del servidor"}), 500
-
-    return jsonify(respuesta), status
+from app.repository import consultorios as consultorios_repository
 
 
-@consultorios_bp.route("/consultorios/<id>", methods=["GET"])
-def get_consultorio(id):
-
-    try:
-        respuesta, status = consultorios_service.obtener_consultorio(id)
-    except Exception:
-        return jsonify({"error": "Error interno del servidor"}), 500
-
-    return jsonify(respuesta), status
+def armar_consultorio(fila):
+    return {
+        "id": fila["id"],
+        "nombre": fila["nombre"],
+        "ubicacion": fila["ubicacion"],
+        "activo": bool(fila["activo"])
+    }
 
 
-@consultorios_bp.route("/consultorios", methods=["POST"])
-def post_consultorio():
-    
-    try:
-        datos = request.get_json(silent=True)
-        respuesta, status = consultorios_service.registrar_consultorio(datos)
-    except Exception:
-        return jsonify({"error": "Error interno del servidor"}), 500
+def listar_consultorios():
+    filas = consultorios_repository.listar()
 
-    return jsonify(respuesta), status
+    consultorios = []
 
+    for fila in filas:
+        consultorios.append(armar_consultorio(fila))
 
-@consultorios_bp.route("/consultorios/<id>", methods=["PATCH"])
-
-def patch_consultorio(id):
-    
-    try:
-        datos = request.get_json(silent=True)
-        respuesta, status = consultorios_service.actualizar_consultorio(id, datos)
-    except Exception:
-        return jsonify({"error": "Error interno del servidor"}), 500
-
-    return jsonify(respuesta), status
+    return {"consultorios": consultorios}, 200
 
 
-@consultorios_bp.route("/consultorios/<id>/baja", methods=["PATCH"])
-def patch_baja_consultorio(id):
-    try:
-        respuesta, status = consultorios_service.dar_de_baja_consultorio(id)
-    except Exception:
-        return jsonify({"error": "Error interno del servidor"}), 500
+def obtener_consultorio(id_consultorio):
+    if not validar_id_consultorio(id_consultorio):
+        return {"error": "El ID del consultorio no es valido"}, 400
 
-    return jsonify(respuesta), status
+    id_consultorio = int(id_consultorio)
+
+    consultorio = consultorios_repository.obtener_por_id(id_consultorio)
+
+    if not consultorio:
+        return {"error": "Consultorio no encontrado"}, 404
+
+    return {"consultorio": armar_consultorio(consultorio)}, 200
+
+
+def registrar_consultorio(datos):
+    errores = validar_registro_consultorio(datos)
+
+    if len(errores) > 0:
+        return {"errores": errores}, 400
+
+    nuevo_consultorio = {
+        "nombre": datos["nombre"].strip(),
+        "ubicacion": datos["ubicacion"].strip(),
+        "activo": True
+    }
+
+    id_creado = consultorios_repository.crear(nuevo_consultorio)
+
+    return {
+        "mensaje": "Consultorio registrado correctamente",
+        "id": id_creado
+    }, 201
+
+
+def actualizar_consultorio(id_consultorio, datos):
+    if not validar_id_consultorio(id_consultorio):
+        return {"error": "El ID del consultorio no es valido"}, 400
+
+    id_consultorio = int(id_consultorio)
+
+    errores = validar_actualizacion_consultorio(datos)
+
+    if len(errores) > 0:
+        return {"errores": errores}, 400
+
+    consultorio = consultorios_repository.obtener_por_id(id_consultorio)
+
+    if not consultorio:
+        return {"error": "Consultorio no encontrado"}, 404
+
+    cambios = {}
+
+    for campo in datos:
+        cambios[campo] = datos[campo].strip()
+
+    consultorios_repository.actualizar(id_consultorio, cambios)
+
+    return {
+        "mensaje": "Consultorio actualizado correctamente"
+    }, 200
+
+
+def dar_de_baja_consultorio(id_consultorio):
+    if not validar_id_consultorio(id_consultorio):
+        return {"error": "El ID del consultorio no es valido"}, 400
+
+    id_consultorio = int(id_consultorio)
+
+    consultorio = consultorios_repository.obtener_por_id(id_consultorio)
+
+    if not consultorio:
+        return {"error": "Consultorio no encontrado"}, 404
+
+    if not consultorio["activo"]:
+        return {"error": "El consultorio ya esta dado de baja"}, 409
+
+    consultorios_repository.dar_baja(id_consultorio)
+
+    return {
+        "mensaje": "Consultorio dado de baja correctamente"
+    }, 200

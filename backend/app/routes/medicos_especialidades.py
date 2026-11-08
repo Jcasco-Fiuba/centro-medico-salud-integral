@@ -1,31 +1,26 @@
-"""Rutas y endpoints para Especialidades."""
-
-from flask import Blueprint, jsonify, request
-
-from app.constants import BASE_URL
-from app.services import medicos_especialidades as especialidades_service
-
-especialidades_bp = Blueprint("especialidades", __name__, url_prefix=BASE_URL)
+from app.validators.medicos_especialidades import validar_registro_especialidad
+from app.repository import medicos_especialidades as especialidades_repository
 
 
-@especialidades_bp.route("/especialidades", methods=["GET"])
-def get_especialidades():
-
-    try:
-        respuesta, status = especialidades_service.listar_especialidades()
-    except Exception:
-        return jsonify({"error": "Error interno del servidor"}), 500
-
-    return jsonify(respuesta), status
+def listar_especialidades():
+    especialidades = especialidades_repository.listar()
+    return {"especialidades": especialidades}, 200
 
 
-@especialidades_bp.route("/especialidades", methods=["POST"])
-def post_especialidad():
+def registrar_especialidad(datos):
+    errores = validar_registro_especialidad(datos)
 
-    try:
-        datos = request.get_json(silent=True)
-        respuesta, status = especialidades_service.registrar_especialidad(datos)
-    except Exception:
-        return jsonify({"error": "Error interno del servidor"}), 500
+    if len(errores) > 0:
+        return {"errores": errores}, 400
 
-    return jsonify(respuesta), status
+    nombre = datos["nombre"].strip()
+
+    if especialidades_repository.obtener_por_nombre(nombre):
+        return {"error": "La especialidad ya esta registrada"}, 409
+
+    id_creado = especialidades_repository.crear({"nombre": nombre})
+
+    return {
+        "mensaje": "Especialidad registrada correctamente",
+        "id": id_creado
+    }, 201
