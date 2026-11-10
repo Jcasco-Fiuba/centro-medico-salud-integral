@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}
+Crear turno | Centro Médico
+{% endblock %}
+
+{% block body %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/administracion/crear_turno.css') }}">
+
+<div class="container admin-crear-turno">
+
+    <h1>Crear turno disponible</h1>
+
+    <p>Completá los datos para generar un nuevo turno de 30 minutos.</p>
+
+    <section class="card">
+
+        <h2>Datos del turno</h2>
+
+        {% if error %}
+            <p class="alert alert--error">{{ error }}</p>
+        {% endif %}
+
+        <form method="POST">
+
+            <div class="campos-turno">
+
+        
+
+                <div class="campo-turno">
+
+                    <label for="medico">Médico:</label>
+
+                    <select id="medico" name="medico" class="form-control" required>
+
+                        <option value="">Seleccioná un médico</option>
+
+                        {% for item in medicos %}
+
+                            {% if item.activo %}
+                                <option value="{{ item.id }}">
+                                    {{ item.nombre }} {{ item.apellido }}
+                                </option>
+                            {% endif %}
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <div class="campo-turno">
+
+                    <label for="consultorio">Consultorio:</label>
+
+                    <select id="consultorio" name="consultorio" class="form-control" required>
+
+                        <option value="">Seleccioná un consultorio</option>
+
+                        {% for item in consultorios %}
+
+                            {% if item.activo %}
+                                <option value="{{ item.id }}">
+                                    {{ item.nombre }}
+                                </option>
+                            {% endif %}
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+                <div class="campo-turno">
+
+                    <label for="fecha">Fecha:</label>
+
+                    <input
+                        type="date"
+                        id="fecha"
+                        name="fecha"
+                        class="form-control"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="campo-turno">
+
+                    <label for="hora">Hora:</label>
+
+                    <input
+                        type="time"
+                        id="hora"
+                        name="hora"
+                        class="form-control"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <p class="info-turno">
+                Duración del turno: 30 minutos.
+            </p>
+
+
+            <div class="acciones-formulario">
+
+                <button type="submit" class="button">
+                    Crear turno
+                </button>
+
+                <a href="{{ url_for('administracion.agendas') }}"
+                   class="button button--secondary">
+                    Cancelar
+                </a>
+
+            </div>
+
+        </form>
+
+    </section>
+
+</div>
+
+{% endblock %}

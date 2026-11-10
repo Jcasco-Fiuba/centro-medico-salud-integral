@@ -1,0 +1,182 @@
+/* TITULOS */
+
+.admin-turnos h1 {
+    color: #173847;
+    margin-bottom: 15px;
+}
+
+.admin-turnos h2 {
+    color: #173847;
+    margin-bottom: 20px;
+}
+
+
+/* FORMULARIO */
+
+.admin-turnos .form-control {
+    margin-bottom: 15px;
+}
+
+.admin-turnos label {
+    font-weight: 600;
+}
+
+
+/* BOTONES */
+
+.admin-turnos .acciones-turnos {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 20px 0;
+}
+
+
+/* TABLA DE TURNOS */
+
+.admin-turnos .tabla-turnos {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    margin-top: 20px;
+}
+
+.admin-turnos .tabla-turnos th {
+    background-color: #e6f1f5;
+    color: #173847;
+    padding: 16px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #cbdde4;
+}
+
+.admin-turnos .tabla-turnos td {
+    padding: 16px;
+    border-bottom: 1px solid #e0e7eb;
+}
+
+.admin-turnos .tabla-turnos tr:hover td {
+    background-color: #f5f9fa;
+}
+
+/* FILTROS EN DOS COLUMNAS */
+
+.admin-turnos .filtros-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 15px;
+}
+
+.admin-turnos .campo-filtro {
+    min-width: 0;
+}
+
+.admin-turnos .campo-filtro label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.admin-turnos .campo-filtro select {
+    width: 100%;
+}
+
+/* ADAPTACION A PANTALLAS PEQUEÑAS */
+
+@media (max-width: 600px) {
+    .admin-turnos .filtros-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ETIQUETAS DE ESTADO */
+
+.admin-turnos .estado-turno {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Disponible */
+.admin-turnos .estado-disponible {
+    background-color: #e5f4ea;
+    color: #207444;
+}
+
+/* Reservado */
+.admin-turnos .estado-reservado {
+    background-color: #e6f1f9;
+    color: #20618a;
+}
+
+/* Confirmado */
+.admin-turnos .estado-confirmado {
+    background-color: #fff3d6;
+    color: #896000;
+}
+
+/* Atendido */
+.admin-turnos .estado-atendido {
+    background-color: #edf0f2;
+    color: #465660;
+}
+
+/* Cancelado */
+.admin-turnos .estado-cancelado {
+    background-color: #fce7e7;
+    color: #a72f2f;
+}
+
+/* Ausente */
+.admin-turnos .estado-ausente {
+    background-color: #f4e8fa;
+    color: #753c91;
+}
+
+/* ENCABEZADO DE GESTION DE TURNOS */
+
+.admin-turnos .encabezado-turnos {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.admin-turnos .encabezado-turnos h1 {
+    margin-bottom: 10px;
+}
+
+.admin-turnos .encabezado-turnos p {
+    margin-bottom: 0;
+}
+
+/* BOTONES DEL ENCABEZADO */
+
+.admin-turnos .encabezado-turnos .acciones-turnos {
+    display: flex;
+    gap: 12px;
+    margin: 0;
+}
+
+.admin-turnos .encabezado-turnos .button {
+    width: auto;
+    white-space: nowrap;
+}
+
+/* PANTALLAS PEQUEÑAS */
+
+@media (max-width: 800px) {
+
+    .admin-turnos .encabezado-turnos {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .admin-turnos .encabezado-turnos .acciones-turnos {
+        flex-wrap: wrap;
+    }
+
+}

@@ -1,0 +1,143 @@
+/* TÍTULOS */
+
+.admin-formulario-agenda h1 {
+    color: #173847;
+    margin-bottom: 15px;
+}
+
+.admin-formulario-agenda h2 {
+    color: #173847;
+    margin-bottom: 25px;
+}
+
+.admin-formulario-agenda h3 {
+    color: #173847;
+    margin-top: 25px;
+    margin-bottom: 15px;
+}
+
+
+/* TARJETA */
+
+.admin-formulario-agenda .card {
+    margin-top: 20px;
+}
+
+
+/* CAMPOS EN DOS COLUMNAS */
+
+.admin-formulario-agenda .campos-agenda {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+
+/* CADA CAMPO */
+
+.admin-formulario-agenda .campo-agenda {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.admin-formulario-agenda .campo-agenda label {
+    font-weight: 600;
+}
+
+.admin-formulario-agenda .campo-agenda .form-control {
+    width: 100%;
+    margin-bottom: 0;
+}
+
+
+/* DÍAS DE ATENCIÓN */
+
+.admin-formulario-agenda .dias-agenda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+.admin-formulario-agenda .dia-agenda {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 12px 15px;
+
+    background-color: #f5f9fa;
+    border: 1px solid #dce6eb;
+    border-radius: 8px;
+
+    cursor: pointer;
+}
+
+.admin-formulario-agenda .dia-agenda input {
+    margin: 0;
+    accent-color: #20677a;
+}
+
+
+/* DURACIÓN */
+
+.admin-formulario-agenda .duracion-agenda {
+    margin-bottom: 20px;
+}
+
+.admin-formulario-agenda .info-agenda {
+    background-color: #e6f1f5;
+    color: #173847;
+
+    padding: 15px;
+    border-radius: 8px;
+
+    margin-top: 15px;
+}
+
+
+
+/* BOTONES */
+
+.admin-formulario-agenda .acciones-agenda {
+    display: flex;
+    flex-direction: row;
+
+    gap: 12px;
+    flex-wrap: wrap;
+
+    align-items: center;
+
+    margin-top: 25px;
+}
+
+.admin-formulario-agenda .acciones-agenda .button {
+    width: auto;
+    flex: 0 0 auto;
+}
+
+
+/* BOTÓN DESHABILITADO */
+
+.admin-formulario-agenda button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+
+/* PANTALLAS PEQUEÑAS */
+
+@media (max-width: 600px) {
+
+    .admin-formulario-agenda .campos-agenda {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-formulario-agenda .dias-agenda {
+        gap: 8px;
+    }
+
+}
