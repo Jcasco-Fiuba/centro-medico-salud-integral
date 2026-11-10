@@ -25,10 +25,14 @@
     <p class="antetitulo">Portal de pacientes · {{ hoy }}</p>
     <h1>Hola, {{ paciente.nombre }}</h1>
     <p class="subtitulo">Este es tu espacio para organizar tus próximas visitas.</p>
- 
+
+   {% if error %}
+      <p class="alert alert--error">{{ error }}</p>
+    {% endif %}
+   
     <div class="accesos">
       <div class="card">
-        <h2>Reservá tu próximo turno</h2>
+        <h2>Mis turnos</h2>
         <p class="texto-gris">Elegí especialidad, profesional, fecha y horario. Solo se muestran fechas futuras disponibles.</p>
         <a class="button" href="#">+ Reservar un turno</a>
       </div>
@@ -45,7 +49,7 @@
         <h2>Tu próximo turno</h2>
  
         <div class="fila">
-          <span class="estado">● Reservado</span>
+          <span class="estado">● {{ proximo_turno.estado|capitalize }}</span>
           <span class="codigo">{{ proximo_turno.codigo }}</span>
         </div>
  
