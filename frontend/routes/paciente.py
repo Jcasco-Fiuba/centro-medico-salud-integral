@@ -32,7 +32,7 @@ def portal():
         if respuesta.status_code != 200:
             return render_template("paciente/portal.html", hoy=hoy, paciente=None,
                                    proximo_turno=None, error="No encontramos tus datos de paciente.")
-        paciente = respuesta.json()
+        paciente = respuesta.json()["paciente"]
         paciente["iniciales"] = paciente["nombre"][0] + paciente["apellido"][0]
  
         #2 Todos los turnos #-> falta filtra por paciente en el back
@@ -54,7 +54,7 @@ def portal():
         # 4 Si hay turno, buscamos el médico y el consultorio para mostrar los nombres
         proximo_turno = None
         if turno_elegido is not None:
-            medico = requests.get(f"{API_URL}/medicos/{turno_elegido['id_medico']}", timeout=5).json()
+            medico = requests.get(f"{API_URL}/medicos/{turno_elegido['id_medico']}", timeout=5).json()["consultorio"]
             consultorio = requests.get(f"{API_URL}/consultorios/{turno_elegido['id_consultorio']}", timeout=5).json()
  
             especialidades = []
@@ -101,7 +101,7 @@ def elegir_especialidad():
     try:
         #1  Datos del paciente, para la navbar y el resumen
         respuesta = requests.get(f"{API_URL}/pacientes/{dni}", timeout=5)
-        paciente = respuesta.json()
+        paciente = respuesta.json()["paciente"]
         paciente["iniciales"] = paciente["nombre"][0] + paciente["apellido"][0]
  
         #2 Todas las especialidades
@@ -110,7 +110,7 @@ def elegir_especialidad():
             return render_template("paciente/especialidad.html", paciente=paciente, especialidades=[],
                                    busqueda=busqueda, especialidad=None,
                                    error="No pudimos cargar las especialidades.")
-        todas = respuesta.json()
+        todas = respuesta.json()["especialidades"]
  
     except requests.exceptions.RequestException:
         return render_template("paciente/especialidad.html", paciente=None, especialidades=[],
@@ -147,7 +147,7 @@ def elegir_profesional():
  
     try:
         #1 Datos del paciente, para la navbar y el resumen
-        paciente = requests.get(f"{API_URL}/pacientes/{dni}", timeout=5).json()
+        paciente = requests.get(f"{API_URL}/pacientes/{dni}", timeout=5).json()["paciente"]
         paciente["iniciales"] = paciente["nombre"][0] + paciente["apellido"][0]
  
         #2 Todos los médicos
