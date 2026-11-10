@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}
+Agendas y horarios | Centro Médico
+{% endblock %}
+
+{% block body %}
+
+<div class="container">
+
+    <h1>Agendas y horarios</h1>
+
+    <p>
+        Organizá la disponibilidad de cada profesional y consultorio.
+    </p>
+
+    <section class="card">
+
+        <h2>Gestión de agendas</h2>
+        {% if medico %}
+        <p>Médico seleccionado: {{ medico }}</p>
+        {% endif %}
+
+        {% if estado %}
+        <p>Estado seleccionado: {{ estado }}</p>
+        {% endif %}
+
+        <form method="GET">
+
+            <label for="medico">Médico:</label>
+            <select id="medico" name="medico" class="form-control">
+                <option value="">Todos los médicos</option>
+                <option value="1">Dra. Valeria Suárez</option>
+                <option value="2">Dr. Martín Ríos</option>
+            </select>
+
+            <label for="especialidad">Especialidad:</label>
+            <select id="especialidad" name="especialidad" class="form-control">
+                <option value="">Todas las especialidades</option>
+                <option value="cardiologia">Cardiología</option>
+                <option value="clinica">Clínica médica</option>
+            </select>
+
+            <label for="estado">Estado:</label>
+            <select id="estado" name="estado" class="form-control">
+                <option value="">Todos los estados</option>
+                <option value="activo">Activo</option>
+                <option value="inactivo">Inactivo</option>
+            </select>
+
+            <label for="fecha_desde">Fecha desde:</label>
+            <input type="date" id="fecha_desde" name="fecha_desde" class="form-control">
+
+            <label for="fecha_hasta">Fecha hasta:</label>
+            <input type="date" id="fecha_hasta" name="fecha_hasta" class="form-control">
+
+            <button type="submit" class="button">
+                Aplicar filtros
+            </button>
+
+        </form>
+
+        <h2>Listado de agendas</h2>
+
+        <table border="1">
+
+            <tr>
+                <th>Médico</th>
+                <th>Consultorio</th>
+                <th>Fecha y hora</th>
+                <th>Estado</th>
+            </tr>
+
+            {% for turno in turnos %}
+
+            <tr>
+                <td>{{ turno.id_medico }}</td>
+                <td>{{ turno.id_consultorio }}</td>
+                <td>{{ turno.fecha_hora }}</td>
+                <td>{{ turno.estado }}</td>
+            </tr>
+
+            {% else %}
+
+            <tr>
+                <td colspan="4">No hay turnos para mostrar.</td>
+            </tr>
+
+            {% endfor %}
+
+        </table>
+    </section>
+
+</div>
+
+{% endblock %}
