@@ -1,0 +1,218 @@
+/* Estilos de las pantallas de recepción (check-in y sala de espera). */
+
+.recepcion-header {
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.recepcion-header__contenido {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block: var(--space-3);
+}
+
+.recepcion-marca {
+  color: var(--color-text);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.recepcion-menu {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.recepcion-menu__link {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.recepcion-menu__link:hover {
+  background: var(--color-page);
+  color: var(--color-text);
+}
+
+.recepcion-menu__link[aria-current="page"] {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.recepcion-main {
+  display: grid;
+  gap: var(--space-6);
+  padding-block: var(--space-8);
+}
+
+.recepcion-card {
+  width: 100%;
+  max-width: 32rem;
+  margin-inline: auto;
+}
+
+.recepcion-titulo {
+  margin: 0 0 var(--space-1);
+  font-size: var(--font-size-xl);
+}
+
+.recepcion-subtitulo {
+  margin: 0 0 var(--space-4);
+  color: var(--color-text-muted);
+}
+
+.recepcion-encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.recepcion-form {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.recepcion-main .alert {
+  margin-bottom: var(--space-4);
+}
+
+/* Detalle del turno después del check-in */
+.recepcion-detalle {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+  margin: 0 0 var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--color-page);
+}
+
+.recepcion-detalle dt {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.recepcion-detalle dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Estado del turno: además del color, siempre se muestra el texto */
+.estado {
+  display: inline-block;
+  padding: 0 var(--space-2);
+  border: 1px solid currentColor;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+}
+
+.estado--confirmado,
+.estado--atendido {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.estado--ausente {
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
+}
+
+.estado--cancelado {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+/* Tabla de la sala de espera */
+.recepcion-tabla-contenedor {
+  overflow-x: auto;
+}
+
+.recepcion-tabla {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.recepcion-tabla th,
+.recepcion-tabla td {
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.recepcion-tabla th {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.recepcion-tabla td:last-child {
+  text-align: right;
+}
+
+.recepcion-dni {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.recepcion-vacio {
+  margin: 0;
+  padding: var(--space-6);
+  border-radius: var(--radius-sm);
+  background: var(--color-page);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* En celular cada paciente se muestra como una tarjeta */
+@media (max-width: 40rem) {
+  .recepcion-tabla thead {
+    display: none;
+  }
+
+  .recepcion-tabla tr {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .recepcion-tabla td {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: 0;
+    border: 0;
+  }
+
+  .recepcion-tabla td[data-label]::before {
+    content: attr(data-label);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  .recepcion-paciente {
+    text-align: right;
+  }
+
+  .recepcion-tabla td:last-child {
+    margin-top: var(--space-2);
+  }
+
+  .recepcion-tabla td:last-child form,
+  .recepcion-tabla td:last-child .button {
+    width: 100%;
+  }
+
+  .recepcion-detalle {
+    grid-template-columns: 1fr;
+  }
+}
