@@ -1,13 +1,9 @@
 from app.validators.medicos_especialidades import validar_registro_especialidad
-from app.db import (
-    listar_especialidades as listar_especialidades_db,
-    obtener_especialidad_por_nombre,
-    crear_especialidad
-)
+from app.repository import medicos_especialidades as especialidades_repository
 
 
 def listar_especialidades():
-    especialidades = listar_especialidades_db()
+    especialidades = especialidades_repository.listar()
     return {"especialidades": especialidades}, 200
 
 
@@ -19,10 +15,10 @@ def registrar_especialidad(datos):
 
     nombre = datos["nombre"].strip()
 
-    if obtener_especialidad_por_nombre(nombre):
+    if especialidades_repository.obtener_por_nombre(nombre):
         return {"error": "La especialidad ya esta registrada"}, 409
 
-    id_creado = crear_especialidad({"nombre": nombre})
+    id_creado = especialidades_repository.crear({"nombre": nombre})
 
     return {
         "mensaje": "Especialidad registrada correctamente",

@@ -1,26 +1,102 @@
-from app.validators.medicos_especialidades import validar_registro_especialidad
-from app.repository import medicos_especialidades as especialidades_repository
+"""Rutas y endpoints para la entidad Medicos-Especialidades."""
 
+from flask import Blueprint, jsonify, request
 
-def listar_especialidades():
-    especialidades = especialidades_repository.listar()
-    return {"especialidades": especialidades}, 200
+from app.constants import BASE_URL
+from app.services import medicos_especialidades as medicos_service
+from app.validators.medicos_especialidades import ( 
+    validar_id_medico, 
+    validar_alta_medico, 
+    validar_modificacion_medico, 
+    )
 
+medicos_bp = Blueprint("medicos", __name__, url_prefix=BASE_URL)
 
-def registrar_especialidad(datos):
-    errores = validar_registro_especialidad(datos)
+@medicos_bp.route("/medicos", methods=["GET"])
+def get_medicos():
+    """Devuelve el listado de médicos."""
+    try:
+        medicos = medicos_service.listar_medicos()
+    except NotImplementedError as error:
+        return jsonify({"error": str(error)}), 501
+    except Exception:
+        return jsonify({"error": "Error interno del servidor"}), 500
 
-    if len(errores) > 0:
-        return {"errores": errores}, 400
+    return jsonify(medicos), 200
 
-    nombre = datos["nombre"].strip()
+@medicos_bp.route("/medicos/<id>/baja", methods=["PATCH"])
+def patch_medico_baja(id):
+    """Solicita la baja de un médico por su ID."""
+    try:
+        id_medico = validar_id_medico(id)
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 400
 
-    if especialidades_repository.obtener_por_nombre(nombre):
-        return {"error": "La especialidad ya esta registrada"}, 409
+    try:
+        resultado = medicos_service.dar_de_baja_medico(id_medico)
+    except NotImplementedError as error:
+        return jsonify({"error": str(error)}), 501
+    except Exception:
+        return jsonify({"error": "Error interno del servidor"}), 500
 
-    id_creado = especialidades_repository.crear({"nombre": nombre})
+    return jsonify(resultado), 200
 
-    return {
-        "mensaje": "Especialidad registrada correctamente",
-        "id": id_creado
-    }, 201
+@medicos_bp.route("/medicos/<id>", methods=["GET"])
+def get_medico(id):
+   """devuelve informacion de un medico por su id"""
+   try:
+        id_medico = validar_id_medico(id)
+   except ValueError as error:
+        return jsonify({"error": str(error)}), 400
+
+   try:
+        medico = medicos_service.obtener_medico(id_medico)
+   except NotImplementedError as error:
+        return jsonify({"error": str(error)}), 501
+   except Exception:
+        return jsonify({"error": "Error del servidor"}), 500
+
+   if medico is None:
+        return jsonify({"error": "Médico no encontrado"}), 404
+   return jsonify(medico), 200
+
+@medicos_bp.route("/medicos", methods=["POST"])
+def post_medico():
+    """da el alta de un médico con sus especialidades"""
+    try:
+        datos = validar_alta_medico(request.get_json(silent=True))
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 400
+
+    try:
+        medico = medicos_service.crear_medico(datos)
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 400
+    except NotImplementedError as error:
+        return jsonify({"error": str(error)}), 501
+    except Exception:
+        return jsonify({"error": "Error interno del servidor"}), 500
+
+    return jsonify(medico), 201
+
+@medicos_bp.route("/medicos/<id>", methods=["PATCH"])
+def patch_medico(id):
+    """modifica la informcion enviada de un medico"""
+    try:
+        id_medico = validar_id_medico(id)
+        cambios = validar_modificacion_medico(request.get_json(silent=True))
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 400
+
+    try:
+        medico = medicos_service.modificar_medico(id_medico, cambios)
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 400
+    except NotImplementedError as error:
+        return jsonify({"error": str(error)}), 501
+    except Exception:
+        return jsonify({"error": "Error del servidor"}), 500
+
+    if medico is None:
+        return jsonify({"error": "Médico no encontrado"}), 404
+    return jsonify(medico), 200
