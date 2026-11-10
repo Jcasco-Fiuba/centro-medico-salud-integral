@@ -54,8 +54,8 @@ def portal():
         # 4 Si hay turno, buscamos el médico y el consultorio para mostrar los nombres
         proximo_turno = None
         if turno_elegido is not None:
-            medico = requests.get(f"{API_URL}/medicos/{turno_elegido['id_medico']}", timeout=5).json()["consultorio"]
-            consultorio = requests.get(f"{API_URL}/consultorios/{turno_elegido['id_consultorio']}", timeout=5).json()
+            medico = requests.get(f"{API_URL}/medicos/{turno_elegido['id_medico']}", timeout=5).json()
+            consultorio = requests.get(f"{API_URL}/consultorios/{turno_elegido['id_consultorio']}", timeout=5).json()["consultorio"]
  
             especialidades = []
             for especialidad in medico.get("especialidades", []):
