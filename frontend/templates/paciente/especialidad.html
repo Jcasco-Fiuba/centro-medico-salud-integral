@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Elegí especialidad | Centro Médico Salud Integral{% endblock %}
+
+{% block page_css %}
+  {# portal.css tiene la navbar, el pie y los textos que se repiten #}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/portal.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/especialidad.css') }}">
+{% endblock %}
+
+{% block body %}
+  <header class="navegacion">
+    <a class="marca" href="{{ url_for('paciente.portal') }}">
+      <span class="logo">+</span>
+      Centro Médico Salud Integral
+    </a>
+
+    <nav class="links">
+      <a href="{{ url_for('paciente.portal') }}">Inicio</a>
+      <a class="activo" href="{{ url_for('paciente.elegir_especialidad') }}">Especialidades</a>
+      <a href="#">Mis turnos</a>
+      <span class="usuario">{{ paciente.iniciales }} · {{ paciente.nombre }} {{ paciente.apellido }}</span>
+    </nav>
+  </header>
+
+  <main class="container contenido">
+    <p class="antetitulo">Nueva reserva · Paso 1 de 4</p>
+    <h1>¿Qué especialidad necesitás?</h1>
+    <p class="subtitulo">Elegí una especialidad para consultar profesionales y turnos disponibles.</p>
+
+    <div class="card pasos">
+      <p class="paso actual"><span class="numero">1</span> Especialidad</p>
+      <p class="paso"><span class="numero">2</span> Profesional</p>
+      <p class="paso"><span class="numero">3</span> Fecha y hora</p>
+      <p class="paso"><span class="numero">4</span> Confirmación</p>
+    </div>
+
+    {% if error %}
+      <p class="alert alert--error">{{ error }}</p>
+    {% endif %}
+
+    <div class="columnas">
+      <div class="card">
+        {# Buscador: vuelve a esta misma página con ?busqueda=... #}
+        <form method="GET" action="{{ url_for('paciente.elegir_especialidad') }}" class="buscador">
+          <div class="form-field">
+            <label class="form-field__label" for="busqueda">Buscar especialidad</label>
+            <input class="form-control" id="busqueda" name="busqueda" type="text"
+                   value="{{ busqueda }}" placeholder="Escribí el nombre de la especialidad">
+          </div>
+          <button class="button button--secondary" type="submit">Buscar</button>
+        </form>
+
+        {# Elección: pasa al paso 2 con ?especialidad=<id> #}
+        <form method="GET" action="{{ url_for('paciente.elegir_profesional') }}">
+          <div class="opciones">
+            {% for item in especialidades %}
+              <label class="opcion">
+                <input type="radio" name="especialidad" value="{{ item.id }}" required
+                       {% if especialidad and especialidad.id == item.id %}checked{% endif %}>
+                <strong>{{ item.nombre }}</strong>
+              </label>
+            {% else %}
+              <p class="texto-gris">No encontramos especialidades.</p>
+            {% endfor %}
+          </div>
+
+          <div class="botones">
+            <a class="button button--secondary" href="{{ url_for('paciente.portal') }}">Volver al inicio</a>
+            <button class="button" type="submit">→ Continuar</button>
+          </div>
+        </form>
+      </div>
+
+      <aside>
+        <div class="card">
+          <h3 class="titulo-resumen">Tu reserva</h3>
+
+          <p class="etiqueta">Paciente</p>
+          <p>{{ paciente.nombre }} {{ paciente.apellido }}</p>
+
+          <p class="etiqueta">Especialidad</p>
+          {% if especialidad %}
+            <p>{{ especialidad.nombre }}</p>
+          {% else %}
+            <p class="pendiente">Pendiente de selección</p>
+          {% endif %}
+
+          <p class="etiqueta">Profesional</p>
+          <p class="pendiente">Pendiente de selección</p>
+
+          <p class="etiqueta">Fecha y hora</p>
+          <p class="pendiente">Pendiente de selección</p>
+
+          <hr>
+          <p class="texto-gris">Sede Central · Presencial</p>
+        </div>
+
+        <div class="ayuda-reserva">
+          <p class="aviso-titulo">¿Necesitás ayuda?</p>
+          <p class="texto-gris">Llamanos al (011) 4567-8900. Te acompañamos con tu reserva.</p>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="container">
+      <p>Av. San Martín 1450, CABA · Lun a vie de 8 a 20 h</p>
+      <p class="ayuda">¿Necesitás ayuda? (011) 4567-8900</p>
+    </div>
+  </footer>
+{% endblock %}
