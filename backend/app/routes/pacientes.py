@@ -1,109 +1,56 @@
-from app.db import get_connection
-
-
+from flask import Blueprint, request, jsonify
+from app.constants import BASE_URL
+from app.services.pacientes import (
+    obtener_paciente,
+    listar_pacientes,
+    registrar_paciente,
+    actualizar_paciente,
+    dar_baja_paciente
+)
+pacientes_bp = Blueprint("pacientes", __name__, url_prefix=BASE_URL)
+@pacientes_bp.route("/pacientes/<dni>", methods=["GET"])
+def consultar_paciente(dni):
+    """Consulta los datos de un paciente por su DNI."""
+    try:
+        respuesta, codigo = obtener_paciente(dni)
+    except Exception:
+        return jsonify({"error": "Error interno del servidor"}), 500
+    return jsonify(respuesta), codigo
+@pacientes_bp.route("/pacientes", methods=["POST"])
+def crear_paciente():
+    """Registra un nuevo paciente."""
+    datos = request.get_json(silent=True)
+    if type(datos) != dict:
+        return jsonify({"error": "El cuerpo debe ser un objeto JSON"}), 400
+    try:
+        respuesta, codigo = registrar_paciente(datos)
+    except Exception:
+        return jsonify({"error": "Error interno del servidor"}), 500
+    return jsonify(respuesta), codigo
+@pacientes_bp.route("/pacientes/<dni>", methods=["PATCH"])
+def modificar_paciente(dni):
+    """Actualiza los datos de un paciente por su DNI."""
+    datos = request.get_json(silent=True)
+    if type(datos) != dict:
+        return jsonify({"error": "El cuerpo debe ser un objeto JSON"}), 400
+    try:
+        respuesta, codigo = actualizar_paciente(dni, datos)
+    except Exception:
+        return jsonify({"error": "Error interno del servidor"}), 500
+    return jsonify(respuesta), codigo
+@pacientes_bp.route("/pacientes", methods=["GET"])
 def listar():
-    connection = get_connection()
-    cursor = connection.cursor(dictionary=True)
-    cursor.execute(
-        "SELECT dni, nombre, apellido, email, activo "
-        "FROM usuarios WHERE rol = %s ORDER BY apellido, nombre",
-        ("paciente",)
-    )
-    pacientes = cursor.fetchall()
-    cursor.close()
-    connection.close()
-    return pacientes
-
-
-def obtener_por_dni(dni):
-    connection = get_connection()
-    cursor = connection.cursor(dictionary=True)
-    cursor.execute(
-        "SELECT dni, nombre, apellido, email, activo "
-        "FROM usuarios WHERE dni = %s AND rol = %s",
-        (dni, "paciente")
-    )
-    paciente = cursor.fetchone()
-    cursor.close()
-    connection.close()
-    return paciente
-
-
-def obtener_por_email(email):
-    # Sin filtrar por rol: usuarios.email es UNIQUE para todos los usuarios.
-    connection = get_connection()
-    cursor = connection.cursor(dictionary=True)
-    cursor.execute(
-        "SELECT dni, nombre, apellido, email, activo "
-        "FROM usuarios WHERE email = %s",
-        (email,)
-    )
-    usuario = cursor.fetchone()
-    cursor.close()
-    connection.close()
-    return usuario
-
-
-def crear(paciente):
-    connection = get_connection()
-    cursor = connection.cursor(dictionary=True)
-    cursor.execute(
-        "INSERT INTO usuarios "
-        "(dni, nombre, apellido, email, password_hash, rol, activo) "
-        "VALUES (%s, %s, %s, %s, %s, %s, %s)",
-        (
-            paciente["dni"],
-            paciente["nombre"],
-            paciente["apellido"],
-            paciente["email"],
-            paciente["password_hash"],
-            "paciente",
-            paciente["activo"]
-        )
-    )
-    connection.commit()
-    cursor.execute(
-        "SELECT dni, nombre, apellido, email, activo "
-        "FROM usuarios WHERE dni = %s AND rol = %s",
-        (paciente["dni"], "paciente")
-    )
-    creado = cursor.fetchone()
-    cursor.close()
-    connection.close()
-    return creado
-
-
-def actualizar(dni, datos):
-    # Los nombres de columna salen de esta lista fija, no del request.
-    columnas = []
-    valores = []
-    for campo in ("nombre", "apellido", "email"):
-        if campo in datos:
-            columnas.append(campo + " = %s")
-            valores.append(datos[campo])
-    valores.append(dni)
-    valores.append("paciente")
-    connection = get_connection()
-    cursor = connection.cursor()
-    cursor.execute(
-        "UPDATE usuarios SET " + ", ".join(columnas) + " "
-        "WHERE dni = %s AND rol = %s",
-        tuple(valores)
-    )
-    connection.commit()
-    cursor.close()
-    connection.close()
-
-
-def dar_baja(dni):
-    connection = get_connection()
-    cursor = connection.cursor()
-    cursor.execute(
-        "UPDATE usuarios SET activo = %s WHERE dni = %s AND rol = %s",
-        (0, dni, "paciente")
-    )
-    connection.commit()
-    modificadas = cursor.rowcount
-    cursor.close()
-    connection.close()
-    return modificadas > 0
+    """Devuelve el listado de pacientes."""
+    try:
+        respuesta, codigo = listar_pacientes()
+    except Exception:
+        return jsonify({"error": "Error interno del servidor"}), 500
+    return jsonify(respuesta), codigo
+@pacientes_bp.route("/pacientes/<dni>/baja", methods=["PATCH"])
+def baja(dni):
+    """Da de baja a un paciente por su DNI."""
+    try:
+        respuesta, codigo = dar_baja_paciente(dni)
+    except Exception:
+        return jsonify({"error": "Error interno del servidor"}), 500
+    return jsonify(respuesta), codigo
