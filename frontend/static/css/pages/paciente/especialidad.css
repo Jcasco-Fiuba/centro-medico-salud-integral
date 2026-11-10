@@ -1,0 +1,124 @@
+/* Estilos del paso 1 de la reserva (elegir especialidad).
+   La navbar, el pie y los textos generales vienen de portal.css. */
+
+/* ---------- barra de pasos ---------- */
+.pasos {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.paso {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.numero {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  line-height: 30px;
+  text-align: center;
+}
+
+.paso.actual {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.paso.actual .numero {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+/* ---------- opciones a la izquierda, resumen a la derecha ---------- */
+.columnas {
+  display: flex;
+  gap: var(--space-6);
+  align-items: flex-start;
+}
+
+.columnas > div {
+  flex: 2;
+}
+
+.columnas > aside {
+  flex: 1;
+}
+
+/* ---------- buscador ---------- */
+.buscador {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.buscador .form-field {
+  flex: 1;
+}
+
+/* ---------- opciones para especialidad ---------- */
+.opciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.opcion {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: calc(50% - var(--space-2));
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.opcion input {
+  accent-color: var(--color-primary);
+}
+
+
+.opcion:has(input:checked) {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.botones {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+/* ---------- resumen "Tu reserva" ---------- */
+.titulo-resumen {
+  margin-top: 0;
+  font-size: var(--font-size-lg);
+}
+
+aside p {
+  margin: 0 0 var(--space-3);
+}
+
+.pendiente {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.ayuda-reserva {
+  margin-top: var(--space-6);
+  padding: 0 var(--space-6);
+}
+
+  }
+}
