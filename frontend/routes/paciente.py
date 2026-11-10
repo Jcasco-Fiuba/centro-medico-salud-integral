@@ -2,7 +2,7 @@
 from datetime import datetime, timedelta
 
 import requests
-from flask import Blueprint, redirect, render_templates, session, url_for
+from flask import Blueprint, redirect, render_template, request, session, url_for
 
 
 paciente_bp = Blueprint("paciente", __name__, url_prefix="/paciente")
