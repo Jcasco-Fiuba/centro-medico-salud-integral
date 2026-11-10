@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+ 
+{% block title %}Mi portal | Centro Médico Salud Integral{% endblock %}
+ 
+{% block page_css %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/portal.css') }}">
+{% endblock %}
+ 
+{% block body %}
+  <header class="navegacion">
+    <a class="marca" href="{{ url_for('paciente.portal') }}">
+      <span class="logo">+</span>
+      Centro Médico Salud Integral
+    </a>
+ 
+    <nav class="links">
+      <a class="activo" href="{{ url_for('paciente.portal') }}">Inicio</a>
+      <a href="#">Especialidades</a>
+      <a href="#">Mis turnos</a>
+      <span class="usuario">{{ paciente.iniciales }} · {{ paciente.nombre }} {{ paciente.apellido }}</span>
+    </nav>
+  </header>
+ 
+  <main class="container contenido">
+    <p class="antetitulo">Portal de pacientes · {{ hoy }}</p>
+    <h1>Hola, {{ paciente.nombre }}</h1>
+    <p class="subtitulo">Este es tu espacio para organizar tus próximas visitas.</p>
+ 
+    <div class="accesos">
+      <div class="card">
+        <h2>Reservá tu próximo turno</h2>
+        <p class="texto-gris">Elegí especialidad, profesional, fecha y horario. Solo se muestran fechas futuras disponibles.</p>
+        <a class="button" href="#">+ Reservar un turno</a>
+      </div>
+ 
+      <div class="card celeste">
+        <h2>Mis turnos</h2>
+        <p class="texto-gris">Revisá tus reservas, consultá el detalle y cancelá dentro del plazo permitido.</p>
+        <a class="button button--secondary" href="#">Ir a Mis turnos</a>
+      </div>
+    </div>
+ 
+    {% if proximo_turno %}
+      <div class="card">
+        <h2>Tu próximo turno</h2>
+ 
+        <div class="fila">
+          <span class="estado">● Reservado</span>
+          <span class="codigo">{{ proximo_turno.codigo }}</span>
+        </div>
+ 
+        <h3>{{ proximo_turno.especialidad }}</h3>
+        <p>{{ proximo_turno.medico }}</p>
+ 
+        <div class="datos">
+          <p><span class="etiqueta">Fecha</span>{{ proximo_turno.fecha }}</p>
+          <p><span class="etiqueta">Hora y duración</span>{{ proximo_turno.hora }} h · {{ proximo_turno.duracion }} minutos</p>
+          <p><span class="etiqueta">Consultorio</span>{{ proximo_turno.consultorio }}</p>
+          <p><span class="etiqueta">Paciente</span>{{ paciente.nombre }} {{ paciente.apellido }} · DNI {{ paciente.dni }}</p>
+        </div>
+ 
+        <hr>
+ 
+        <div class="aviso">
+          <p class="aviso-titulo">ⓘ Presentá tu QR al llegar</p>
+          <p>{{ proximo_turno.texto_checkin }}</p>
+        </div>
+ 
+        <a class="button" href="#">Ver detalle y comprobante</a>
+      </div>
+ 
+      <div class="aviso">
+        <p class="aviso-titulo">ⓘ ¿No podés asistir?</p>
+        <p>Cancelá desde Mis turnos hasta el {{ proximo_turno.cancelar_hasta }}. Después de ese plazo, comunicate con recepción.</p>
+      </div>
+    {% else %}
+      <div class="card">
+        <h2>Tu próximo turno</h2>
+        <p class="texto-gris">Todavía no tenés turnos reservados.</p>
+      </div>
+    {% endif %}
+  </main>
+ 
+  <footer class="pie">
+    <div class="container">
+      <p>Lun a vie de 8 a 20 h · Atención presencial</p>
+      <p class="ayuda">¿Necesitás ayuda? (011) 4567-8900</p>
+    </div>
+  </footer>
+{% endblock %}
