@@ -1,20 +1,31 @@
+"""Logica de negocio de Consultorios: valida los datos y usa el repository."""
+
 from app.validators.consultorios import (
     validar_id_consultorio,
     validar_registro_consultorio,
     validar_actualizacion_consultorio
 )
 
-from app.db import (
-    listar_consultorios as listar_consultorios_db,
-    obtener_consultorio_por_id,
-    crear_consultorio,
-    actualizar_consultorio as actualizar_consultorio_db,
-    baja_consultorio as baja_consultorio_db
-)
+from app.repository import consultorios as consultorios_repository
+
+
+def armar_consultorio(fila):
+    return {
+        "id": fila["id"],
+        "nombre": fila["nombre"],
+        "ubicacion": fila["ubicacion"],
+        "activo": bool(fila["activo"])
+    }
 
 
 def listar_consultorios():
-    consultorios = listar_consultorios_db()
+    filas = consultorios_repository.listar()
+
+    consultorios = []
+
+    for fila in filas:
+        consultorios.append(armar_consultorio(fila))
+
     return {"consultorios": consultorios}, 200
 
 
@@ -24,12 +35,12 @@ def obtener_consultorio(id_consultorio):
 
     id_consultorio = int(id_consultorio)
 
-    consultorio = obtener_consultorio_por_id(id_consultorio)
+    consultorio = consultorios_repository.obtener_por_id(id_consultorio)
 
     if not consultorio:
         return {"error": "Consultorio no encontrado"}, 404
 
-    return {"consultorio": consultorio}, 200
+    return {"consultorio": armar_consultorio(consultorio)}, 200
 
 
 def registrar_consultorio(datos):
@@ -44,7 +55,7 @@ def registrar_consultorio(datos):
         "activo": True
     }
 
-    id_creado = crear_consultorio(nuevo_consultorio)
+    id_creado = consultorios_repository.crear(nuevo_consultorio)
 
     return {
         "mensaje": "Consultorio registrado correctamente",
@@ -63,7 +74,7 @@ def actualizar_consultorio(id_consultorio, datos):
     if len(errores) > 0:
         return {"errores": errores}, 400
 
-    consultorio = obtener_consultorio_por_id(id_consultorio)
+    consultorio = consultorios_repository.obtener_por_id(id_consultorio)
 
     if not consultorio:
         return {"error": "Consultorio no encontrado"}, 404
@@ -73,10 +84,7 @@ def actualizar_consultorio(id_consultorio, datos):
     for campo in datos:
         cambios[campo] = datos[campo].strip()
 
-    actualizado = actualizar_consultorio_db(id_consultorio, cambios)
-
-    if not actualizado:
-        return {"error": "No se pudo actualizar el consultorio"}, 404
+    consultorios_repository.actualizar(id_consultorio, cambios)
 
     return {
         "mensaje": "Consultorio actualizado correctamente"
@@ -89,12 +97,15 @@ def dar_de_baja_consultorio(id_consultorio):
 
     id_consultorio = int(id_consultorio)
 
-    consultorio = obtener_consultorio_por_id(id_consultorio)
+    consultorio = consultorios_repository.obtener_por_id(id_consultorio)
 
     if not consultorio:
         return {"error": "Consultorio no encontrado"}, 404
 
-    baja_consultorio_db(id_consultorio)
+    if not consultorio["activo"]:
+        return {"error": "El consultorio ya esta dado de baja"}, 409
+
+    consultorios_repository.dar_baja(id_consultorio)
 
     return {
         "mensaje": "Consultorio dado de baja correctamente"
