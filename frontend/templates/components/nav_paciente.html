@@ -1,0 +1,43 @@
+{% set u = paciente if paciente is defined and paciente else usuario_actual %}
+<header class="navegacion">
+  <div class="navegacion-cabecera">
+    <a class="marca" href="{{ url_for('paciente.portal') }}">
+      <span class="logo">+</span>
+      <span>Centro Médico Salud Integral</span>
+    </a>
+
+    <button
+      type="button"
+      class="nav-toggle"
+      data-menu-toggle
+      aria-controls="nav-paciente-menu"
+      aria-expanded="false"
+      aria-label="Abrir menú de navegación"
+    >
+      Menú
+    </button>
+  </div>
+
+  <nav id="nav-paciente-menu" class="links nav-collapsible" aria-label="Menú del portal de pacientes">
+    <a
+      href="{{ url_for('paciente.portal') }}"
+      {% if request.endpoint == 'paciente.portal' %}class="activo" aria-current="page"{% endif %}
+    >Inicio</a>
+    <a
+      href="{{ url_for('paciente.elegir_especialidad') }}"
+      {% if request.endpoint in ['paciente.elegir_especialidad', 'paciente.elegir_profesional', 'paciente.elegir_fecha', 'paciente.confirmar_reserva'] %}class="activo" aria-current="page"{% endif %}
+    >Especialidades</a>
+    <a
+      href="{{ url_for('paciente.mis_turnos') }}"
+      {% if request.endpoint in ['paciente.mis_turnos', 'paciente.detalle_turno', 'paciente.cancelar_turno'] %}class="activo" aria-current="page"{% endif %}
+    >Mis turnos</a>
+
+    {% if u %}
+      <span class="usuario">{{ u.iniciales }} · {{ (u.nombre ~ ' ' ~ u.apellido)|trim }}</span>
+    {% endif %}
+
+    <form class="nav-logout-form" action="{{ url_for('auth.cerrar_sesion') }}" method="post">
+      <button type="submit" class="nav-logout-btn">Cerrar sesión</button>
+    </form>
+  </nav>
+</header>

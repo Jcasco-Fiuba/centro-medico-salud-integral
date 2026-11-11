@@ -11,19 +11,7 @@
 {% endblock %}
 
 {% block body %}
-  <header class="navegacion">
-    <a class="marca" href="{{ url_for('paciente.portal') }}">
-      <span class="logo">+</span>
-      Centro Médico Salud Integral
-    </a>
-
-    <nav class="links">
-      <a href="{{ url_for('paciente.portal') }}">Inicio</a>
-      <a href="{{ url_for('paciente.elegir_especialidad') }}">Especialidades</a>
-      <a class="activo" href="{{ url_for('paciente.mis_turnos') }}">Mis turnos</a>
-      <span class="usuario">{{ paciente.iniciales }} · {{ paciente.nombre }} {{ paciente.apellido }}</span>
-    </nav>
-  </header>
+  {% include "components/nav_paciente.html" %}
 
   <main class="container contenido">
     <a class="volver" href="{{ url_for('paciente.mis_turnos') }}">← Volver a Mis turnos</a>

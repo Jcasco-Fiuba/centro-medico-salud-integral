@@ -7,17 +7,69 @@
 
 .public-home__header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-4);
   padding: var(--space-3) var(--space-4);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
 }
 
+.public-home__header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.public-home__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.public-home__brand-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+}
+
+.public-home__nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.public-home__link {
+  color: var(--color-text-muted);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.public-home__link:hover,
+.public-home__link:focus-visible {
+  color: var(--color-primary);
+}
+
+.public-home__user {
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
 .public-home__content {
   max-width: 42rem;
-  margin: 18vh auto 0;
+  margin: 14vh auto 0;
   text-align: center;
 }
 
@@ -36,7 +88,32 @@
   color: var(--color-text-muted);
 }
 
-.public-home__action {
-  display: inline-block;
-  margin-top: var(--space-4);
+.public-home__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+@media (max-width: 48rem) {
+  .public-home__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .public-home__nav {
+    flex-direction: column;
+    align-items: stretch;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .public-home__actions {
+    flex-direction: column;
+  }
+
+  .public-home__actions .button {
+    width: 100%;
+  }
 }

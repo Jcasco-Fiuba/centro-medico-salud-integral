@@ -1,18 +1,48 @@
 <header class="recepcion-header">
   <div class="container recepcion-header__contenido">
-    <a href="{{ url_for('recepcion.checkin') }}" class="recepcion-marca">Centro Médico Salud Integral</a>
+    <div class="recepcion-header__cabecera">
+      <a href="{{ url_for('recepcion.checkin') }}" class="recepcion-marca">Centro Médico Salud Integral</a>
 
-    <nav class="recepcion-menu" aria-label="Menú de recepción">
-      <a
-        href="{{ url_for('recepcion.checkin') }}"
-        class="recepcion-menu__link"
-        {% if request.endpoint in ['recepcion.checkin', 'recepcion.registrar_checkin'] %}aria-current="page"{% endif %}
-      >Check-in</a>
-      <a
-        href="{{ url_for('recepcion.sala_espera') }}"
-        class="recepcion-menu__link"
-        {% if request.endpoint == 'recepcion.sala_espera' %}aria-current="page"{% endif %}
-      >Sala de espera</a>
-    </nav>
+      <button
+        type="button"
+        class="nav-toggle"
+        data-menu-toggle
+        aria-controls="nav-recepcion-menu"
+        aria-expanded="false"
+        aria-label="Abrir menú de recepción"
+      >
+        Menú
+      </button>
+    </div>
+
+    <div id="nav-recepcion-menu" class="recepcion-header__acciones nav-collapsible">
+      <nav class="recepcion-menu" aria-label="Menú de recepción">
+        <a
+          href="{{ url_for('recepcion.checkin') }}"
+          class="recepcion-menu__link"
+          {% if request.endpoint in ['recepcion.checkin', 'recepcion.registrar_checkin'] %}aria-current="page"{% endif %}
+        >Check-in</a>
+        <a
+          href="{{ url_for('recepcion.sala_espera') }}"
+          class="recepcion-menu__link"
+          {% if request.endpoint == 'recepcion.sala_espera' %}aria-current="page"{% endif %}
+        >Sala de espera</a>
+        <a
+          href="{{ url_for('administracion.dashboard') }}"
+          class="recepcion-menu__link"
+        >Administración</a>
+      </nav>
+
+      <div class="recepcion-usuario">
+        {% if usuario_actual %}
+          <span class="recepcion-usuario__nombre">
+            {{ usuario_actual.iniciales }} · {{ usuario_actual.nombre_completo }}
+          </span>
+        {% endif %}
+        <form class="nav-logout-form" action="{{ url_for('auth.cerrar_sesion') }}" method="post">
+          <button type="submit" class="nav-logout-btn">Cerrar sesión</button>
+        </form>
+      </div>
+    </div>
   </div>
 </header>

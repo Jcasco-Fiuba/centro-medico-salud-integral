@@ -1,0 +1,54 @@
+<aside id="admin-sidebar-menu" class="sidebar" aria-label="Menú de administración">
+  <div class="sidebar-logo">
+    <div class="logo-icono">
+      <span>+</span>
+    </div>
+    <div class="logo-texto">
+      <h2>Centro Médico</h2>
+      <p>Salud Integral</p>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <p class="sidebar-titulo">Gestión interna</p>
+
+    <a
+      href="{{ url_for('administracion.dashboard') }}"
+      class="nav-link{% if request.endpoint == 'administracion.dashboard' %} activo{% endif %}"
+      {% if request.endpoint == 'administracion.dashboard' %}aria-current="page"{% endif %}
+    >Dashboard</a>
+
+    <a
+      href="{{ url_for('administracion.especialidades') }}"
+      class="nav-link{% if request.endpoint in ['administracion.especialidades', 'administracion.crear_especialidad', 'administracion.editar_especialidad'] %} activo{% endif %}"
+      {% if request.endpoint in ['administracion.especialidades', 'administracion.crear_especialidad', 'administracion.editar_especialidad'] %}aria-current="page"{% endif %}
+    >Especialidades</a>
+
+    <a
+      href="{{ url_for('administracion.medicos') }}"
+      class="nav-link{% if request.endpoint in ['administracion.medicos', 'administracion.nuevo_medico', 'administracion.editar_medico'] %} activo{% endif %}"
+      {% if request.endpoint in ['administracion.medicos', 'administracion.nuevo_medico', 'administracion.editar_medico'] %}aria-current="page"{% endif %}
+    >Médicos</a>
+
+    <a
+      href="{{ url_for('administracion.consultorios') }}"
+      class="nav-link{% if request.endpoint in ['administracion.consultorios', 'administracion.nuevo_consultorio', 'administracion.editar_consultorio'] %} activo{% endif %}"
+      {% if request.endpoint in ['administracion.consultorios', 'administracion.nuevo_consultorio', 'administracion.editar_consultorio'] %}aria-current="page"{% endif %}
+    >Consultorios</a>
+
+    <a
+      href="{{ url_for('administracion.agendas') }}"
+      class="nav-link{% if request.endpoint in ['administracion.agendas', 'administracion.disponibilidad', 'administracion.nuevo_turno', 'administracion.guardar_turno'] %} activo{% endif %}"
+      {% if request.endpoint in ['administracion.agendas', 'administracion.disponibilidad', 'administracion.nuevo_turno', 'administracion.guardar_turno'] %}aria-current="page"{% endif %}
+    >Agendas y horarios</a>
+
+    <p class="sidebar-titulo sidebar-titulo--secundario">Recepción</p>
+    <a href="{{ url_for('recepcion.checkin') }}" class="nav-link">Check-in QR</a>
+    <a href="{{ url_for('recepcion.sala_espera') }}" class="nav-link">Sala de espera</a>
+  </nav>
+
+  <div class="sidebar-info">
+    <h3>{{ usuario_actual.nombre_completo if usuario_actual else 'Administrador' }} · Admin</h3>
+    <p>Atención presencial · 8 a 20 h</p>
+  </div>
+</aside>

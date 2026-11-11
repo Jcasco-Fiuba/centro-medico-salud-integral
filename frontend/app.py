@@ -5,9 +5,10 @@ import os
 from pathlib import Path
 import secrets
 
-from flask import Flask
+from flask import Flask, request
 
 from routes import register_blueprints
+from services import api_client
 from services.session_store import (
     DEFAULT_SESSION_LIFETIME_SECONDS,
     FileSystemSessionInterface,
@@ -106,6 +107,35 @@ def create_app() -> Flask:
     )
 
     register_blueprints(app)
+
+    @app.context_processor
+    def inyectar_contexto_sesion():
+        usuario = api_client.obtener_usuario_actual()
+        usuario_vista = None
+        if isinstance(usuario, dict):
+            nombre = str(usuario.get("nombre") or "").strip()
+            apellido = str(usuario.get("apellido") or "").strip()
+            iniciales = f"{nombre[:1]}{apellido[:1]}".strip().upper() or "U"
+            usuario_vista = {
+                **usuario,
+                "nombre": nombre,
+                "apellido": apellido,
+                "nombre_completo": f"{nombre} {apellido}".strip() or str(usuario.get("email") or "Usuario"),
+                "iniciales": iniciales,
+            }
+        return {
+            "usuario_actual": usuario_vista,
+            "ruta_protegida": request.blueprint in ("paciente", "administracion", "recepcion"),
+        }
+
+    @app.after_request
+    def aplicar_headers_seguridad_cache(response):
+        if request.blueprint in ("paciente", "administracion", "recepcion") or request.endpoint == "auth.cerrar_sesion":
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0, private"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+        return response
+
     return app
 
 

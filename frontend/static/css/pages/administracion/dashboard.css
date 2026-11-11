@@ -69,6 +69,10 @@
     font-weight: 600;
 }
 
+.sidebar-titulo--secundario {
+    margin-top: 22px;
+}
+
 .sidebar-nav {
     display: flex;
     flex-direction: column;
@@ -130,14 +134,22 @@
 /* BARRA SUPERIOR */
 
 .topbar {
-    height: 65px;
+    min-height: 65px;
     background-color: #ffffff;
     border-bottom: 1px solid #e2e7ed;
-    padding: 0 35px;
+    padding: 10px 35px;
 
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 16px;
+}
+
+.topbar-izquierda {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
 }
 
 .topbar p {
@@ -147,10 +159,16 @@
 }
 
 .topbar-usuario {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     font-size: 13px;
     font-weight: 600;
     color: #243e50;
-    cursor: pointer;
+}
+
+.topbar-usuario__nombre {
+    white-space: nowrap;
 }
 
 
@@ -568,16 +586,24 @@
 
 /* PANTALLAS PEQUEÑAS */
 
-@media (max-width: 750px) {
+@media (max-width: 48rem) {
 
     .dashboard-layout {
         flex-direction: column;
     }
 
     .sidebar {
+        position: static;
         width: 100%;
+        height: auto;
         min-height: auto;
-        
+        border-right: none;
+        border-bottom: 1px solid #e2e7ed;
+    }
+
+    .dashboard-main {
+        margin-left: 0;
+        width: 100%;
     }
 
     .sidebar-info {
@@ -593,7 +619,16 @@
     }
 
     .topbar {
-        padding: 15px;
+        height: auto;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 14px 16px;
+    }
+
+    .topbar-usuario {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
     }
 
     .dashboard-content {

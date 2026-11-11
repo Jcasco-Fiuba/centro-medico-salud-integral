@@ -14,50 +14,13 @@
 <div class="dashboard-layout">
 
     <!-- BARRA LATERAL -->
-    <aside class="sidebar">
-
-        <div class="sidebar-logo">
-            <div class="logo-icono">
-                <span>+</span>
-            </div>
-            <div class="logo-texto">
-                <h2>Centro Médico</h2>
-                <p>Salud Integral</p>
-            </div>
-        </div>
-
-        <nav class="sidebar-nav">
-            <p class="sidebar-titulo">Gestión interna</p>
-
-            <a href="{{ url_for('administracion.dashboard') }}" class="nav-link">Dashboard</a>
-            <a href="{{ url_for('administracion.especialidades') }}" class="nav-link">Especialidades</a>
-            <a href="{{ url_for('administracion.medicos') }}" class="nav-link">Médicos</a>
-            <a href="{{ url_for('administracion.consultorios') }}" class="nav-link activo">Consultorios</a>
-            <a href="{{ url_for('administracion.agendas') }}" class="nav-link">Agendas y horarios</a>
-        </nav>
-
-        <div class="sidebar-info">
-            <h3>Administrador · Gestiones del centro</h3>
-            <p>Atención presencial · 8 a 20 h</p>
-        </div>
-
-    </aside>
-
+    {% include "components/sidebar_admin.html" %}
 
     <!-- CONTENIDO PRINCIPAL -->
     <main class="dashboard-main">
 
         <!-- BARRA SUPERIOR -->
-        <header class="topbar">
-
-            <p>Administración / Gestión del centro</p>
-
-            <div class="topbar-usuario">
-                <span>Mariana López · Administradora ⌵</span>
-            </div>
-
-        </header>
-
+        {% include "components/topbar_admin.html" %}
 
         <!-- CONTENIDO DE FORMULARIO -->
         <div class="dashboard-content">
