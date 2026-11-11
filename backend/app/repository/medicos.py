@@ -11,15 +11,13 @@ def listar_medicos() -> list[dict]:
     """
     Lista todos los medicos de la base de datos.
     """
-
+    
     sql = """
     SELECT id, nombre, apellido, matricula, id_consultorio, activo
     FROM medicos
-    JOIN medicos_especialidades ON medicos_especialidades.id_medico = medicos.id
-    WHERE medicos_especialidades.id_especialidad = %(id_especialidad)s AND medicos.activo = TRUE
-    ORDER BY medicos.apellido, medicos.nombre
+    ORDER BY apellido, nombre
     """
-    return ejecutar_consulta(sql, {"id_especialidad": id_especialidad})
+    return ejecutar_consulta(sql)
 
 
 def obtener_medico_por_id(id) -> dict:
@@ -97,14 +95,13 @@ def listar_especialidades_por_medico(id_medico) -> list[dict]:
     """
 
     sql = """
-    SELECT especialidades.id, especialidades.nombre
-    FROM especialidades
-    INNER JOIN medicos_especialidades
-        ON medicos_especialidades.id_especialidad = especialidades.id
-    WHERE medicos_especialidades.id_medico = %(id_medico)s
-    ORDER BY especialidades.nombre
+    SELECT medicos.id, medicos.nombre, medicos.apellido, medicos.matricula, medicos.id_consultorio, medicos.activo
+    FROM medicos
+    JOIN medicos_especialidades ON medicos_especialidades.id_medico = medicos.id
+    WHERE medicos_especialidades.id_especialidad = %(id_especialidad)s AND medicos.activo = TRUE
+    ORDER BY medicos.apellido, medicos.nombre
     """
-    return ejecutar_consulta(sql, {'id_medico': id_medico})
+    return ejecutar_consulta(sql, {"id_especialidad": id_especialidad})
 
 
 def borrar_especialidades_medico(id_medico) -> int:
