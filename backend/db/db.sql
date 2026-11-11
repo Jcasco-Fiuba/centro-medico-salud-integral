@@ -69,8 +69,8 @@ INSERT INTO especialidades (nombre) VALUES
 ('Pediatria');
 
 INSERT INTO usuarios (dni, nombre, apellido, email, password_hash, rol, activo) VALUES
-('99999999', 'Marta', 'Gomez', 'marta@gomez.com', '12345678', 'paciente', TRUE),
-('55555555', 'Juan', 'Perez', 'juan@perez.com', 'juan5555', 'paciente', TRUE);
+('99999999', 'Marta', 'Gomez', 'marta@gomez.com', 'pbkdf2:sha256:600000$Kohtf8RSnLoH$2b6b7cebbb5f5cbb77539d2582cc0bcb68881cc4f5cb077c3dfcba8c9c9e742c', 'paciente', TRUE),
+('55555555', 'Juan', 'Perez', 'juan@perez.com', 'pbkdf2:sha256:600000$8TgUqa4duR6l$ba13553f7437e874ce3a91085916b9acb18d09bc7cea3191fb01d2248bfb41b8', 'paciente', TRUE);
 
 INSERT INTO medicos (nombre, apellido, matricula, id_consultorio, activo) VALUES
 ('Laura', 'Martinez', '34444', 1, TRUE),
