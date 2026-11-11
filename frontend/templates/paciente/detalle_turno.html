@@ -96,7 +96,7 @@
               </div>
               <p class="texto-gris centrado">QR ilustrativo. No es válido para un check-in real.</p>
             {% else %}
-              <p class="texto-gris centrado">Tu código de ingreso es <strong>{{ turno.codigo }}</strong>.</p>
+              <p class="texto-gris centrado">Tu código de ingreso es <strong class="token">{{ turno.token or turno.codigo }}</strong>.</p>
             {% endif %}
             <p class="centrado"><strong>Presentá este QR en recepción.</strong></p>
 
