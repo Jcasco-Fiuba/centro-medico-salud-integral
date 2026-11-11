@@ -20,8 +20,8 @@ CREATE TABLE IF NOT EXISTS usuarios (
     dni VARCHAR(8) UNIQUE NOT NULL,
     nombre VARCHAR(100) NOT NULL,
     apellido VARCHAR(100) NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    password_hash VARCHAR(100) NOT NULL,
+    email VARCHAR(254) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
     rol ENUM('paciente', 'admin') DEFAULT 'paciente',
     activo BOOLEAN DEFAULT TRUE
 );
