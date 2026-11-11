@@ -1,14 +1,45 @@
 """Rutas de administración del centro médico."""
 
-from flask import Blueprint,render_template,request,redirect,url_for
-from services import api_client
-from urllib.parse import urlencode
 from datetime import datetime
+from urllib.parse import urlencode
 
+from flask import Blueprint, redirect, render_template, request, url_for
+from services import api_client
 
 administracion_bp = Blueprint("administracion", __name__, url_prefix="/administracion")
 
-@administracion_bp.route("/dashboard")
+
+# --- HELPER PARA MANEJO DE ERRORES DE LA API ---
+
+def obtener_mensaje_error(respuesta, fallback="Ocurrió un error inesperado."):
+    """Extrae el mensaje de error de la API (soporta clave 'errores' como lista o 'error' como texto)."""
+    if isinstance(respuesta, dict):
+        if "errores" in respuesta and isinstance(respuesta["errores"], list) and respuesta["errores"]:
+            return respuesta["errores"][0]
+        if "error" in respuesta:
+            return respuesta["error"]
+    return fallback
+
+
+def cargar_opciones_agenda():
+    respuesta_medicos, status_medicos = api_client.get("/api/medicos")
+    respuesta_consultorios, status_consultorios = api_client.get("/api/consultorios")
+
+    medicos = []
+    consultorios = []
+
+    if status_medicos == 200 and isinstance(respuesta_medicos, list):
+        medicos = respuesta_medicos
+
+    if status_consultorios == 200 and isinstance(respuesta_consultorios, dict):
+        consultorios = respuesta_consultorios.get("consultorios", [])
+
+    return medicos, consultorios
+
+
+# --- DASHBOARD ---
+
+@administracion_bp.get("/dashboard")
 def dashboard():
     respuesta, status = api_client.get("/api/dashboard/stats")
 
@@ -37,28 +68,151 @@ def dashboard():
                 "confirmado": 5,
                 "atendido": 9,
                 "cancelado": 6,
-                "ausente": 4
-            }
+                "ausente": 4,
+            },
         }
 
     return render_template("administracion/dashboard.html", metricas=metricas)
 
 
-def cargar_opciones_agenda():
+# --- ESPECIALIDADES ---
 
-    respuesta_medicos, status_medicos = api_client.get("/api/medicos")
-    respuesta_consultorios, status_consultorios = api_client.get("/api/consultorios")
+@administracion_bp.route("/especialidades", methods=["GET"])
+def especialidades():
+    buscar = request.args.get("buscar", "").strip()
+    estado = request.args.get("estado", "")
+    error_mensaje = None
+    especialidades_data = []
 
-    medicos = []
-    consultorios = []
+    try:
+        respuesta, status = api_client.get("/api/especialidades")
 
-    if status_medicos == 200 and isinstance(respuesta_medicos, list):
-        medicos = respuesta_medicos
+        if status == 200 and isinstance(respuesta, dict) and "especialidades" in respuesta:
+            lista = respuesta["especialidades"]
 
-    if status_consultorios == 200 and isinstance(respuesta_consultorios, dict):
-        consultorios = respuesta_consultorios.get("consultorios", [])
+            if buscar:
+                lista = [e for e in lista if buscar.lower() in e.get("nombre", "").lower()]
 
-    return medicos, consultorios
+            if estado == "activo":
+                lista = [e for e in lista if e.get("activo") is True]
+            elif estado == "inactivo":
+                lista = [e for e in lista if e.get("activo") is False]
+
+            especialidades_data = lista
+        else:
+            error_mensaje = obtener_mensaje_error(respuesta, "No se pudieron obtener las especialidades.")
+    except Exception:
+        error_mensaje = "Error de conexión con el servicio backend."
+
+    return render_template(
+        "administracion/especialidades.html",
+        especialidades=especialidades_data,
+        buscar=buscar,
+        estado=estado,
+        error=error_mensaje,
+    )
+
+
+@administracion_bp.route("/especialidades/nueva", methods=["GET", "POST"])
+def crear_especialidad():
+    error = None
+
+    if request.method == "POST":
+        nombre = request.form.get("nombre", "").strip()
+        descripcion = request.form.get("descripcion", "").strip()
+
+        if not nombre:
+            error = "El nombre de la especialidad es obligatorio."
+        elif len(nombre) < 3:
+            error = "El nombre debe tener al menos 3 caracteres."
+        elif len(nombre) > 50:
+            error = "El nombre no puede superar los 50 caracteres."
+        else:
+            datos = {"nombre": nombre, "descripcion": descripcion}
+            try:
+                respuesta, status = api_client.post("/api/especialidades", datos)
+
+                if status in (200, 201):
+                    return redirect(url_for("administracion.especialidades", creada="1"))
+
+                error = obtener_mensaje_error(respuesta, "No se pudo guardar la especialidad.")
+            except Exception:
+                error = "Error crítico de conexión al intentar crear la especialidad."
+
+    return render_template(
+        "administracion/formulario_especialidad.html",
+        editando=False,
+        especialidad=None,
+        error=error,
+    )
+
+
+@administracion_bp.route("/especialidades/<int:id>/editar", methods=["GET", "POST"])
+def editar_especialidad(id):
+    error = None
+
+    try:
+        respuesta_get, status_get = api_client.get(f"/api/especialidades/{id}")
+    except Exception:
+        return redirect(url_for("administracion.especialidades", error_conexion="1"))
+
+    if status_get != 200 or not isinstance(respuesta_get, dict):
+        return redirect(url_for("administracion.especialidades", no_encontrado="1"))
+
+    especialidad = respuesta_get
+
+    if request.method == "POST":
+        nombre = request.form.get("nombre", "").strip()
+        descripcion = request.form.get("descripcion", "").strip()
+
+        if not nombre:
+            error = "El nombre de la especialidad es obligatorio."
+        elif len(nombre) < 3:
+            error = "El nombre debe tener al menos 3 caracteres."
+        elif len(nombre) > 50:
+            error = "El nombre no puede superar los 50 caracteres."
+        else:
+            datos = {"nombre": nombre, "descripcion": descripcion}
+            try:
+                respuesta, status = api_client.patch(f"/api/especialidades/{id}", datos)
+
+                if status in (200, 204):
+                    return redirect(url_for("administracion.especialidades", editada="1"))
+
+                error = obtener_mensaje_error(respuesta, "No se pudo actualizar la especialidad.")
+            except Exception:
+                error = "Error de conexión al actualizar la especialidad."
+
+    return render_template(
+        "administracion/formulario_especialidad.html",
+        editando=True,
+        especialidad=especialidad,
+        error=error,
+    )
+
+
+@administracion_bp.route("/especialidades/<int:id>/baja", methods=["POST"])
+def dar_baja_especialidad(id):
+    try:
+        respuesta, status = api_client.patch(f"/api/especialidades/{id}", {"activo": False})
+        if status in (200, 204):
+            return redirect(url_for("administracion.especialidades", baja="1"))
+    except Exception:
+        pass
+
+    return redirect(url_for("administracion.especialidades", error_baja="1"))
+
+
+# --- MÉDICOS Y CONSULTORIOS ---
+
+@administracion_bp.get("/medicos")
+def medicos():
+    return render_template("administracion/medicos.html")
+
+
+@administracion_bp.get("/consultorios")
+def consultorios():
+    return render_template("administracion/consultorios.html")
 
 @administracion_bp.route("/agendas")
 def agendas():
