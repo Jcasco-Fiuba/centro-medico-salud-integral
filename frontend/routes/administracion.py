@@ -203,16 +203,177 @@ def dar_baja_especialidad(id):
     return redirect(url_for("administracion.especialidades", error_baja="1"))
 
 
-# --- MÉDICOS Y CONSULTORIOS ---
+# --- MEDICOS ---
 
-@administracion_bp.get("/medicos")
+@administracion_bp.route("/medicos", methods=["GET"])
 def medicos():
-    return render_template("administracion/medicos.html")
+    buscar = request.args.get("buscar", "").strip()
+    estado = request.args.get("estado", "")
+    error_mensaje = None
+    medicos_data = []
+
+    try:
+        respuesta, status = api_client.get("/api/medicos")
+
+        if status == 200 and isinstance(respuesta, list):
+            lista = respuesta
+
+            if buscar:
+                b = buscar.lower()
+                lista = [
+                    m for m in lista 
+                    if b in m.get("nombre", "").lower() 
+                    or b in m.get("apellido", "").lower()
+                    or b in str(m.get("matricula", "")).lower()
+                ]
+
+            if estado == "activo":
+                lista = [m for m in lista if m.get("activo") is True]
+            elif estado == "inactivo":
+                lista = [m for m in lista if m.get("activo") is False]
+
+            medicos_data = lista
+        else:
+            error_mensaje = obtener_mensaje_error(respuesta, "No se pudieron obtener los médicos.")
+    except Exception:
+        error_mensaje = "Error de conexión con el servicio backend."
+
+    return render_template(
+        "administracion/medicos.html",
+        medicos=medicos_data,
+        buscar=buscar,
+        estado=estado,
+        error=error_mensaje,
+    )
 
 
-@administracion_bp.get("/consultorios")
+@administracion_bp.route("/medicos/nuevo", methods=["GET", "POST"])
+def nuevo_medico():
+    error = None
+    especialidades_data = []
+
+    
+    # Cargar especialidades para el desplegable del formulario
+    try:
+        resp_esp, status_esp = api_client.get("/api/especialidades")
+        if status_esp == 200 and isinstance(resp_esp, dict) and "especialidades" in resp_esp:
+            especialidades_data = resp_esp["especialidades"]
+    except Exception:
+        pass
+
+    if request.method == "POST":
+        nombre = request.form.get("nombre", "").strip()
+        apellido = request.form.get("apellido", "").strip()
+        matricula = request.form.get("matricula", "").strip()
+        especialidad_id = request.form.get("especialidad_id", "").strip()
+        email = request.form.get("email", "").strip()
+        telefono = request.form.get("telefono", "").strip()
+
+        if not nombre or not apellido or not matricula or not especialidad_id:
+            error = "Nombre, apellido, matrícula y especialidad son obligatorios."
+        else:
+            datos = {
+                "nombre": nombre,
+                "apellido": apellido,
+                "matricula": matricula,
+                "email": email,
+                "telefono": telefono,
+                "especialidades": [int(especialidad_id)]
+            }
+            try:
+                respuesta, status = api_client.post("/api/medicos", datos)
+                if status in (200, 201):
+                    return redirect(url_for("administracion.medicos", creada="1"))
+
+                error = obtener_mensaje_error(respuesta, "No se pudo registrar al médico.")
+            except Exception:
+                error = "Error de conexión al intentar crear el médico."
+
+    return render_template(
+        "administracion/formulario_medico.html",
+        editando=False,
+        medico=None,
+        especialidades=especialidades_data,
+        error=error,
+    )
+
+
+@administracion_bp.route("/medicos/<int:id>/editar", methods=["GET", "POST"])
+def editar_medico(id):
+    error = None
+    medico = None
+    especialidades_data = []
+
+    try:
+        resp_esp, status_esp = api_client.get("/api/especialidades")
+        if status_esp == 200 and isinstance(resp_esp, dict) and "especialidades" in resp_esp:
+            especialidades_data = resp_esp["especialidades"]
+    except Exception:
+        pass
+
+    try:
+        respuesta_get, status_get = api_client.get(f"/api/medicos/{id}")
+        if status_get == 200 and isinstance(respuesta_get, dict):
+            medico = respuesta_get
+        else:
+            return redirect(url_for("administracion.medicos", no_encontrado="1"))
+    except Exception:
+        return redirect(url_for("administracion.medicos", error_conexion="1"))
+
+    if request.method == "POST":
+        nombre = request.form.get("nombre", "").strip()
+        apellido = request.form.get("apellido", "").strip()
+        matricula = request.form.get("matricula", "").strip()
+        especialidad_id = request.form.get("especialidad_id", "").strip()
+        email = request.form.get("email", "").strip()
+        telefono = request.form.get("telefono", "").strip()
+
+        if not nombre or not apellido or not matricula or not especialidad_id:
+            error = "Nombre, apellido, matrícula y especialidad son obligatorios."
+        else:
+            datos = {
+                "nombre": nombre,
+                "apellido": apellido,
+                "matricula": matricula,
+                "email": email,
+                "telefono": telefono,
+                "especialidades": [int(especialidad_id)]
+            }
+            try:
+                respuesta, status = api_client.patch(f"/api/medicos/{id}", datos)
+                if status in (200, 204):
+                    return redirect(url_for("administracion.medicos", editada="1"))
+
+                error = obtener_mensaje_error(respuesta, "No se pudo actualizar el médico.")
+            except Exception:
+                error = "Error de conexión al actualizar los datos del médico."
+
+    return render_template(
+        "administracion/formulario_medico.html",
+        editando=True,
+        medico=medico,
+        especialidades=especialidades_data,
+        error=error,
+    )
+
+
+@administracion_bp.route("/medicos/<int:id>/baja", methods=["POST"])
+def dar_baja_medico(id):
+    try:
+        respuesta, status = api_client.patch(f"/api/medicos/{id}/baja", {})
+        if status in (200, 204):
+            return redirect(url_for("administracion.medicos", baja="1"))
+    except Exception:
+        pass
+
+    return redirect(url_for("administracion.medicos", error_baja="1"))
+    
+
+# --- CONSULTORIOS ---
+
+@administracion_bp.route("/consultorios", methods=["GET"])
 def consultorios():
-    return render_template("administracion/consultorios.html")
+    return redirect(url_for("administracion.medicos"))
 
 @administracion_bp.route("/agendas")
 def agendas():
