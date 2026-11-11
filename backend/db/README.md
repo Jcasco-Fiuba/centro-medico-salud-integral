@@ -2,8 +2,9 @@
 
 ## Aviso sobre `CREATE DATABASE` y `USE centro_medico`
 
-Los scripts `db.sql`, `001_expand_auth_fields.sql` y
-`002_hash_legacy_demo_passwords.sql` contienen la directiva `USE centro_medico;`.
+Los scripts `db.sql` y las migraciones `001_expand_auth_fields.sql`,
+`002_hash_legacy_demo_passwords.sql` y `003_add_specialty_metadata.sql` contienen
+la directiva `USE centro_medico;`.
 
 - **En una instancia MySQL temporal aislada** (por ejemplo levantando `mysqld` en
   un directorio temporal como `/tmp/mysql_cmsi_test` en el puerto `3307`),
@@ -41,12 +42,15 @@ orden y una sola vez:
 2. `002_hash_legacy_demo_passwords.sql`: reemplaza las contraseñas en claro de
    las dos cuentas demo de pacientes conocidas (`marta@gomez.com` y
    `juan@perez.com`), únicamente si aún conservan esos valores en texto plano.
+3. `003_add_specialty_metadata.sql`: agrega `descripcion` y `activo` a
+   `especialidades` sin borrar ni volver a insertar registros existentes.
 
 > Si aplicás estas migraciones sobre un schema con otro nombre (por ejemplo
 > `centro_medico_test`), filtrá `USE centro_medico;`:
 > ```bash
 > sed '/^USE centro_medico;/d' backend/db/001_expand_auth_fields.sql | mysql -u root -p -D centro_medico_test
 > sed '/^USE centro_medico;/d' backend/db/002_hash_legacy_demo_passwords.sql | mysql -u root -p -D centro_medico_test
+> sed '/^USE centro_medico;/d' backend/db/003_add_specialty_metadata.sql | mysql -u root -p -D centro_medico_test
 > ```
 
 El backend nunca acepta contraseñas en texto plano como mecanismo de
