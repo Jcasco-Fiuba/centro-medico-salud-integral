@@ -37,7 +37,13 @@
                 </p>
               </header>
 
-              <form class="login-form" action="#" method="post">
+              <form class="login-form" action="{{ url_for('auth.procesar_login') }}" method="post">
+                {% if error %}
+                  <div class="alert alert-danger mb-0" role="alert">
+                    {{ error }}
+                  </div>
+                {% endif %}
+
                 <div class="login-field">
                   <label for="email" class="login-field__label">Correo electrónico</label>
                   <input
