@@ -15,9 +15,11 @@ def listar_medicos() -> list[dict]:
     sql = """
     SELECT id, nombre, apellido, matricula, id_consultorio, activo
     FROM medicos
-    ORDER BY apellido, nombre
+    JOIN medicos_especialidades ON medicos_especialidades.id_medico = medicos.id
+    WHERE medicos_especialidades.id_especialidad = %(id_especialidad)s AND medicos.activo = TRUE
+    ORDER BY medicos.apellido, medicos.nombre
     """
-    return ejecutar_consulta(sql)
+    return ejecutar_consulta(sql, {"id_especialidad": id_especialidad})
 
 
 def obtener_medico_por_id(id) -> dict:
