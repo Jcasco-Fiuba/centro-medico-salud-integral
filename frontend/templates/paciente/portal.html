@@ -16,7 +16,7 @@
     <nav class="links">
       <a class="activo" href="{{ url_for('paciente.portal') }}">Inicio</a>
       <a href="{{ url_for('paciente.elegir_especialidad') }}">Especialidades</a>
-      <a href="#">Mis turnos</a>
+      <a href="{{ url_for('paciente.mis_turnos') }}">Mis turnos</a>
       <span class="usuario">{{ paciente.iniciales }} · {{ paciente.nombre }} {{ paciente.apellido }}</span>
     </nav>
   </header>
@@ -32,7 +32,7 @@
    
     <div class="accesos">
       <div class="card">
-        <h2>Reservá tu prómixo turno</h2>
+        <h2>Reservá tu próximo turno</h2>
         <p class="texto-gris">Elegí especialidad, profesional, fecha y horario. Solo se muestran fechas futuras disponibles.</p>
         <a class="button" href="{{ url_for('paciente.elegir_especialidad') }}">+ Reservar un turno</a>
       </div>
@@ -40,7 +40,7 @@
       <div class="card celeste">
         <h2>Mis turnos</h2>
         <p class="texto-gris">Revisá tus reservas, consultá el detalle y cancelá dentro del plazo permitido.</p>
-        <a class="button button--secondary" href="#">Ir a Mis turnos</a>
+        <a class="button button--secondary" href="{{ url_for('paciente.mis_turnos') }}">Ir a Mis turnos</a>
       </div>
     </div>
  
@@ -70,7 +70,7 @@
           <p>{{ proximo_turno.texto_checkin }}</p>
         </div>
  
-        <a class="button" href="#">Ver detalle y comprobante</a>
+        <a class="button" href="{{ url_for('paciente.detalle_turno', turno_id=proximo_turno.id) }}">Ver detalle y comprobante</a>
       </div>
  
       <div class="aviso">
