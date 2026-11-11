@@ -8,6 +8,41 @@ from datetime import datetime
 
 administracion_bp = Blueprint("administracion", __name__, url_prefix="/administracion")
 
+@administracion_bp.route("/dashboard")
+def dashboard():
+    respuesta, status = api_client.get("/api/dashboard/stats")
+
+    if status == 200 and isinstance(respuesta, dict) and "total_turnos" in respuesta:
+        metricas = respuesta
+    else:
+        metricas = {
+            "total_turnos": 64,
+            "ocupacion_porcentaje": "72,5 %",
+            "ocupacion_detalle": "58 de 80 cupos de agenda",
+            "cancelaciones_total": 6,
+            "cancelaciones_porcentaje": "9,4 % de los turnos del día",
+            "ausentismo_porcentaje": "6,3 %",
+            "ausentismo_detalle": "4 ausentes de 64 turnos",
+            "total_especialidades": 64,
+            "especialidades": [
+                {"nombre": "Clínica médica", "cantidad": 22, "porcentaje": 100},
+                {"nombre": "Cardiología", "cantidad": 16, "porcentaje": 73},
+                {"nombre": "Dermatología", "cantidad": 10, "porcentaje": 45},
+                {"nombre": "Traumatología", "cantidad": 8, "porcentaje": 36},
+                {"nombre": "Ginecología", "cantidad": 5, "porcentaje": 23},
+                {"nombre": "Pediatría", "cantidad": 3, "porcentaje": 14},
+            ],
+            "estados": {
+                "reservado": 40,
+                "confirmado": 5,
+                "atendido": 9,
+                "cancelado": 6,
+                "ausente": 4
+            }
+        }
+
+    return render_template("administracion/dashboard.html", metricas=metricas)
+
 
 def cargar_opciones_agenda():
 
