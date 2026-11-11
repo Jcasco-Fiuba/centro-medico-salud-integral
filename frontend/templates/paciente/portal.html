@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% from "components/panel_sesion.html" import vista_sesion %}
+
+{% block title %}Portal de pacientes | Centro Médico Salud Integral{% endblock %}
+
+{% block body %}
+  {{ vista_sesion(
+    "Portal del paciente",
+    "Sesión autenticada correctamente. Las vistas de reservas y turnos se integrarán en las próximas oleadas.",
+    usuario,
+    "Área de pacientes"
+  ) }}
+{% endblock %}

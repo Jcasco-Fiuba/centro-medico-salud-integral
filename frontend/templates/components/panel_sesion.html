@@ -1,0 +1,49 @@
+{% macro vista_sesion(encabezado, descripcion, usuario, rol_etiqueta) %}
+  <main class="container" style="padding-block: var(--space-8);">
+    <section class="card" aria-labelledby="panel-sesion-titulo">
+      <p style="margin-top: 0; color: var(--color-primary); font-size: var(--font-size-sm); font-weight: 600;">
+        {{ rol_etiqueta }}
+      </p>
+      <h1 id="panel-sesion-titulo" style="margin-top: 0;">{{ encabezado }}</h1>
+      <p>{{ descripcion }}</p>
+
+      {% if usuario %}
+        <dl style="display: grid; gap: var(--space-2); margin-block: var(--space-4);">
+          {% if usuario.get("nombre") or usuario.get("apellido") %}
+            <div>
+              <dt style="font-weight: 600; display: inline;">Usuario:</dt>
+              <dd style="display: inline; margin: 0;">
+                {{ (usuario.get("nombre", "") ~ " " ~ usuario.get("apellido", "")) | trim }}
+              </dd>
+            </div>
+          {% endif %}
+          {% if usuario.get("email") %}
+            <div>
+              <dt style="font-weight: 600; display: inline;">Correo:</dt>
+              <dd style="display: inline; margin: 0;">{{ usuario.get("email") }}</dd>
+            </div>
+          {% endif %}
+          {% if usuario.get("dni") %}
+            <div>
+              <dt style="font-weight: 600; display: inline;">DNI:</dt>
+              <dd style="display: inline; margin: 0;">{{ usuario.get("dni") }}</dd>
+            </div>
+          {% endif %}
+          {% if usuario.get("rol") %}
+            <div>
+              <dt style="font-weight: 600; display: inline;">Rol:</dt>
+              <dd style="display: inline; margin: 0;">{{ usuario.get("rol") }}</dd>
+            </div>
+          {% endif %}
+        </dl>
+      {% endif %}
+
+      <div style="display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-6);">
+        <form action="{{ url_for('auth.cerrar_sesion') }}" method="post">
+          <button type="submit" class="button">Cerrar sesión</button>
+        </form>
+        <a class="button button--secondary" href="{{ url_for('public.inicio') }}">Volver al inicio</a>
+      </div>
+    </section>
+  </main>
+{% endmacro %}

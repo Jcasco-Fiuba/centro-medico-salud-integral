@@ -42,12 +42,15 @@ def procesar_login():
 
     respuesta, status_code = iniciar_sesion_api(email=email, password=password)
     if status_code == 200 and "access_token" in respuesta:
+        usuario = respuesta.get("usuario", {})
         guardar_sesion_autenticada(
             access_token=respuesta["access_token"],
             expires_in=int(respuesta.get("expires_in", 3600)),
-            usuario=respuesta.get("usuario", {}),
+            usuario=usuario,
         )
-        return redirect(url_for("public.inicio"))
+        if isinstance(usuario, dict) and usuario.get("rol") == "admin":
+            return redirect(url_for("administracion.inicio"))
+        return redirect(url_for("paciente.portal"))
 
     error = _extraer_mensaje_error(respuesta, "No se pudo iniciar sesión.")
     return render_template("auth/login.html", error=error), status_code
