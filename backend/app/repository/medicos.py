@@ -93,6 +93,21 @@ def listar_especialidades_por_medico(id_medico) -> list[dict]:
     """
     Recibe el id de un medico y devuelve sus especialidades.
     """
+    sql = """
+    SELECT especialidades.id, especialidades.nombre
+    FROM especialidades
+    INNER JOIN medicos_especialidades
+        ON medicos_especialidades.id_especialidad = especialidades.id
+    WHERE medicos_especialidades.id_medico = %(id_medico)s
+    ORDER BY especialidades.nombre
+    """
+    return ejecutar_consulta(sql, {'id_medico': id_medico})
+
+
+def listar_medicos_por_especialidad(id_especialidad) -> list[dict]:
+    """
+    Recibe el id de una especialidad y devuelve los medicos activos que la tienen.
+    """
 
     sql = """
     SELECT medicos.id, medicos.nombre, medicos.apellido, medicos.matricula, medicos.id_consultorio, medicos.activo
