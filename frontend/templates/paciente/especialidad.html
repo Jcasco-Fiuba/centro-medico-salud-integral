@@ -18,7 +18,7 @@
     <nav class="links">
       <a href="{{ url_for('paciente.portal') }}">Inicio</a>
       <a class="activo" href="{{ url_for('paciente.elegir_especialidad') }}">Especialidades</a>
-      <a href="#">Mis turnos</a>
+      <a href="{{ url_for('paciente.mis_turnos') }}">Mis turnos</a>
       <span class="usuario">{{ paciente.iniciales }} · {{ paciente.nombre }} {{ paciente.apellido }}</span>
     </nav>
   </header>
