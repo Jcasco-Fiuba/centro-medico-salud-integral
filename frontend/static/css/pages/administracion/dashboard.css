@@ -13,14 +13,17 @@
 /* BARRA LATERAL */
 
 .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 250px;
+    height: 100vh;
     min-height: 100vh;
-    background-color: #ffffff;
-    border-right: 1px solid #e2e7ed;
-    padding: 25px 18px;
-
     display: flex;
     flex-direction: column;
+    padding: 25px 18px;
+    overflow-y: auto;
+    z-index: 1000;
 }
 
 .sidebar-logo {
@@ -69,33 +72,36 @@
 .sidebar-nav {
     display: flex;
     flex-direction: column;
-    gap: 7px;
+    gap: 8px;
+    margin-top: 25px;
 }
 
 .nav-link {
+    display: block;
+    padding: 13px 14px;
+    border-radius: 8px;
+    color: #263445;
     text-decoration: none;
-    color: #536174;
-    padding: 11px 14px;
-    border-radius: 7px;
-    font-size: 14px;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    font-weight: 400;
+    background: transparent;
 }
 
 .nav-link:hover {
-    background-color: #f0f4f9;
-    color: #245b91;
+    background: #f1f5f9;
 }
 
 .nav-link.activo {
-    background-color: #e8f1f5;
-    color: #1d576a;
+    background: #e6f0f4;
+    color: #07516b;
     font-weight: 600;
 }
 
 .sidebar-info {
     margin-top: auto;
-    padding-top: 20px;
+    padding-top: 30px;
     border-top: 1px solid #e2e7ed;
+    width: 100%;
+    flex-shrink: 0;
 }
 
 .sidebar-info h3 {
@@ -115,7 +121,8 @@
 /* CONTENIDO PRINCIPAL */
 
 .dashboard-main {
-    flex: 1;
+    margin-left: 250px;
+    width: calc(100% - 250px);
     min-width: 0;
 }
 
@@ -520,8 +527,8 @@
 /* AJUSTES GENERALES */
 
 .dashboard-content {
-    max-width: 1600px;
-    margin: 0 auto;
+    width: 100%;
+    padding: 35px;
 }
 
 .indicador {
@@ -570,6 +577,7 @@
     .sidebar {
         width: 100%;
         min-height: auto;
+        
     }
 
     .sidebar-info {
