@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Confirmá tu turno | Centro Médico Salud Integral{% endblock %}
+
+{% block page_css %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/portal.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/especialidad.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/profesional.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/avisos.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/confirmacion.css') }}">
+{% endblock %}
+
+{% block body %}
+  <header class="navegacion">
+    <a class="marca" href="{{ url_for('paciente.portal') }}">
+      <span class="logo">+</span>
+      Centro Médico Salud Integral
+    </a>
+
+    <nav class="links">
+      <a href="{{ url_for('paciente.portal') }}">Inicio</a>
+      <a class="activo" href="{{ url_for('paciente.elegir_especialidad') }}">Especialidades</a>
+      <a href="{{ url_for('paciente.mis_turnos') }}">Mis turnos</a>
+      <span class="usuario">{{ paciente.iniciales }} · {{ paciente.nombre }} {{ paciente.apellido }}</span>
+    </nav>
+  </header>
+
+  <main class="container contenido">
+    <p class="antetitulo">Nueva reserva · Paso 4 de 4</p>
+    <h1>Revisá y confirmá tu turno</h1>
+    <p class="subtitulo">Chequeá los datos antes de confirmar. Podés cambiar el horario si algo no es correcto.</p>
+
+    <div class="card pasos">
+      <p class="paso hecho"><span class="numero">✓</span> Especialidad</p>
+      <p class="paso hecho"><span class="numero">✓</span> Profesional</p>
+      <p class="paso hecho"><span class="numero">✓</span> Fecha y hora</p>
+      <p class="paso actual"><span class="numero">4</span> Confirmación</p>
+    </div>
+
+    <div class="columnas">
+      <div class="card">
+        <h3 class="titulo-resumen">Revisar y confirmar</h3>
+
+        <div class="resumen-dato">
+          <p class="etiqueta">Especialidad</p>
+          <p>{{ especialidad_nombre }}</p>
+        </div>
+        <div class="resumen-dato">
+          <p class="etiqueta">Profesional</p>
+          <p>{{ turno.medico }}</p>
+        </div>
+        <div class="resumen-dato">
+          <p class="etiqueta">Fecha y hora</p>
+          <p>{{ turno.fecha_dmy }} · {{ turno.hora }} h</p>
+        </div>
+        <div class="resumen-dato">
+          <p class="etiqueta">Consultorio</p>
+          <p>{{ turno.sede }} · {{ turno.consultorio_nombre }}</p>
+        </div>
+        <div class="resumen-dato">
+          <p class="etiqueta">Paciente</p>
+          <p>{{ paciente.nombre }} {{ paciente.apellido }}</p>
+        </div>
+
+        {% if problema == 'duplicado' %}
+          <div class="aviso aviso--error">
+            <p class="aviso-titulo">✕ Ya tenés este turno reservado</p>
+            <p>Existe una reserva tuya con este profesional y este horario: {{ turno.codigo }}. No se creó otra reserva.</p>
+          </div>
+        {% elif problema == 'ocupado' %}
+          <div class="aviso aviso--alerta">
+            <p class="aviso-titulo">! Este horario se acaba de ocupar</p>
+            <p>Otra persona lo reservó antes de la confirmación. No se creó tu reserva. Elegí un nuevo horario.</p>
+          </div>
+        {% elif problema == 'error' %}
+          <div class="aviso aviso--error">
+            <p class="aviso-titulo">✕ No pudimos confirmar tu turno</p>
+            <p>No se guardó ningún cambio. Intentá de nuevo en unos minutos.</p>
+          </div>
+        {% else %}
+          <div class="aviso">
+            <p class="aviso-titulo">ⓘ Cancelación</p>
+            <p>Vas a poder cancelar el turno hasta 24 horas antes desde Mis turnos.</p>
+          </div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('paciente.confirmar_reserva') }}">
+          <input type="hidden" name="especialidad" value="{{ especialidad_id }}">
+          <input type="hidden" name="medico" value="{{ medico_id or turno.id_medico }}">
+          <input type="hidden" name="fecha" value="{{ fecha_iso or '' }}">
+          <input type="hidden" name="turno" value="{{ turno.id }}">
+
+          <div class="botones">
+            {% if problema is none %}
+              <a class="button button--secondary" href="{{ url_for('paciente.elegir_fecha', especialidad=especialidad_id, medico=turno.id_medico) }}">← Cambiar horario</a>
+              <button class="button" type="submit">Confirmar turno</button>
+            {% else %}
+              <button class="button" type="button" disabled>Confirmar turno</button>
+
+              {% if problema == 'duplicado' %}
+                <a class="button" href="{{ url_for('paciente.detalle_turno', turno_id=turno.id) }}">Ver mi turno</a>
+                <a class="button button--secondary" href="{{ url_for('paciente.elegir_fecha', especialidad=especialidad_id, medico=turno.id_medico) }}">Cambiar horario</a>
+              {% elif problema == 'ocupado' %}
+                <a class="button" href="{{ url_for('paciente.elegir_fecha', especialidad=especialidad_id, medico=turno.id_medico) }}">Ver horarios disponibles</a>
+              {% else %}
+                <button class="button" type="submit">Reintentar</button>
+              {% endif %}
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+{% endblock %}

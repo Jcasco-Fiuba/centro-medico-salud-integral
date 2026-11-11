@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Elegí profesional | Centro Médico Salud Integral{% endblock %}
+
+{% block page_css %}
+  {# portal.css: navbar, pie y textos. especialidad.css: pasos, columnas, buscador y resumen #}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/portal.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/especialidad.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/profesional.css') }}">
+{% endblock %}
+
+{% block body %}
+  <header class="navegacion">
+    <a class="marca" href="{{ url_for('paciente.portal') }}">
+      <span class="logo">+</span>
+      Centro Médico Salud Integral
+    </a>
+
+    <nav class="links">
+      <a href="{{ url_for('paciente.portal') }}">Inicio</a>
+      <a class="activo" href="{{ url_for('paciente.elegir_especialidad') }}">Especialidades</a>
+      <a href="{{ url_for('paciente.mis_turnos') }}">Mis turnos</a>
+      <span class="usuario">{{ paciente.iniciales }} · {{ paciente.nombre }} {{ paciente.apellido }}</span>
+    </nav>
+  </header>
+
+  <main class="container contenido">
+    <p class="antetitulo">Nueva reserva · Paso 2 de 4</p>
+    <h1>Elegí tu profesional</h1>
+    {% if especialidad %}
+      <p class="subtitulo">Profesionales de {{ especialidad.nombre }} en Sede Central. Atención presencial.</p>
+    {% else %}
+      <p class="subtitulo">Profesionales de la especialidad elegida en Sede Central.</p>
+    {% endif %}
+
+    <div class="card pasos">
+      <p class="paso hecho"><span class="numero">✓</span> Especialidad</p>
+      <p class="paso actual"><span class="numero">2</span> Profesional</p>
+      <p class="paso"><span class="numero">3</span> Fecha y hora</p>
+      <p class="paso"><span class="numero">4</span> Confirmación</p>
+    </div>
+
+    {% if error %}
+      <p class="alert alert--error">{{ error }}</p>
+    {% endif %}
+
+    <div class="columnas">
+      <div>
+        {# Buscador: vuelve a esta página sin perder la especialidad elegida #}
+        <form method="GET" action="{{ url_for('paciente.elegir_profesional') }}" class="buscador">
+          <input type="hidden" name="especialidad" value="{{ especialidad_id }}">
+          <div class="form-field">
+            <label class="form-field__label" for="busqueda">Buscar profesional</label>
+            <input class="form-control" id="busqueda" name="busqueda" type="text"
+                   value="{{ busqueda }}" placeholder="Nombre o apellido">
+          </div>
+          <button class="button button--secondary" type="submit">Buscar</button>
+        </form>
+
+        <p class="texto-gris">{{ medicos|length }} profesionales disponibles</p>
+
+        {#Elección: pasa al paso 3 con ?especialidad=(...)&medico=(...)
+           -> aviso si alguno lee esto: Cuando exista la página del paso 3, cambiar action por url_for('paciente.elegir_fecha') #}
+        <form method="GET" action="{{ url_for('paciente.elegir_fecha') }}">
+          <input type="hidden" name="especialidad" value="{{ especialidad_id }}">
+
+          {% for item in medicos %}
+            <label class="card opcion profesional">
+              <input type="radio" name="medico" value="{{ item.id }}" required
+                     {% if medico and medico.id == item.id %}checked{% endif %}>
+              <span class="avatar">{{ item.iniciales }}</span>
+              <span class="profesional-nombre">
+                <strong>{{ item.nombre_completo }}</strong><br>
+                <span class="texto-gris">{{ especialidad.nombre }}</span>
+              </span>
+              <span class="profesional-dato">
+                <span class="etiqueta">Próximo turno</span>
+                {% if item.proximo %}
+                  {{ item.proximo }}
+                {% else %}
+                  <span class="pendiente">Sin turnos disponibles</span>
+                {% endif %}
+              </span>
+            </label>
+          {% else %}
+            <p class="texto-gris">No encontramos profesionales para esta especialidad.</p>
+          {% endfor %}
+
+          <div class="botones">
+            <a class="button button--secondary" href="{{ url_for('paciente.elegir_especialidad', especialidad=especialidad_id) }}">← Volver</a>
+            <button class="button" type="submit">→ Elegir fecha y hora</button>
+          </div>
+        </form>
+      </div>
+
+      <aside>
+        <div class="card">
+          <h3 class="titulo-resumen">Tu reserva</h3>
+
+          <p class="etiqueta">Paciente</p>
+          <p>{{ paciente.nombre }} {{ paciente.apellido }}</p>
+
+          <p class="etiqueta">Especialidad</p>
+          {% if especialidad %}
+            <p>{{ especialidad.nombre }}</p>
+          {% else %}
+            <p class="pendiente">Pendiente de selección</p>
+          {% endif %}
+
+          <p class="etiqueta">Profesional</p>
+          {% if medico %}
+            <p>{{ medico.nombre_completo }}</p>
+          {% else %}
+            <p class="pendiente">Pendiente de selección</p>
+          {% endif %}
+
+          <p class="etiqueta">Fecha y hora</p>
+          <p class="pendiente">Pendiente de selección</p>
+
+          <hr>
+          <p class="texto-gris">Sede Central · Presencial</p>
+        </div>
+
+        <div class="ayuda-reserva">
+          <p class="aviso-titulo">¿Necesitás ayuda?</p>
+          <p class="texto-gris">Llamanos al (011) 4567-8900. Te acompañamos con tu reserva.</p>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="pie">
+    <div class="container">
+      <p>Av. San Martín 1450, CABA · Lun a vie de 8 a 20 h</p>
+      <p class="ayuda">¿Necesitás ayuda? (011) 4567-8900</p>
+    </div>
+  </footer>
+{% endblock %}

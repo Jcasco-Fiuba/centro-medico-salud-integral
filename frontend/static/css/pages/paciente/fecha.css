@@ -1,0 +1,116 @@
+/* Paso 3 del flujo de reserva (elegir fecha y hora).
+   Navbar y pie: portal.css. Pasos, columnas, botones: especialidad.css. Paso hecho: profesional.css. */
+
+/* ---------- calendario ---------- */
+.calendario-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-4);
+}
+
+.mes-nav {
+  padding: 0 var(--space-3);
+  color: var(--color-primary);
+  font-size: 1.5rem;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.mes-nav--off {
+  color: var(--color-border);
+}
+
+.calendario-tabla {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: var(--space-1);
+  table-layout: fixed;
+}
+
+.calendario-tabla th {
+  padding: var(--space-2) 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 400;
+}
+
+.calendario-tabla td {
+  padding: 0;
+  text-align: center;
+}
+
+.dia {
+  display: block;
+  padding: var(--space-3) 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+a.dia:hover {
+  background: var(--color-primary-soft);
+}
+
+.dia--pasado {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}
+
+.dia--disponible {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.dia.dia--seleccionado {
+  background: var(--color-primary);
+  color: white;
+}
+
+.leyenda {
+  margin: var(--space-4) 0 0;
+  font-size: var(--font-size-sm);
+}
+
+/* ---------- horarios del día elegido ---------- */
+.horarios {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+}
+
+.horario {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.horario input {
+  accent-color: var(--color-primary);
+}
+
+.horario:has(input:checked) {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+/* Botones a todo el ancho del panel */
+.boton-bloque {
+  display: block;
+  width: 100%;
+  margin-top: var(--space-3);
+  box-sizing: border-box;
+  text-align: center;
+}
+
+@media (max-width: 800px) {
+  .horarios {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
