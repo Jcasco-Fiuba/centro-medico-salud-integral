@@ -59,7 +59,7 @@
 
         <p class="texto-gris">{{ medicos|length }} profesionales disponibles</p>
 
-        {# Elección: pasa al paso 3 con ?especialidad=(...)&medico=(...)
+        {# Elección: pasa al paso 3 con ?especialidad=(...)&medico=(...) #}
         <form method="GET" action="{{ url_for('paciente.elegir_fecha') }}">
           <input type="hidden" name="especialidad" value="{{ especialidad_id }}">
 
