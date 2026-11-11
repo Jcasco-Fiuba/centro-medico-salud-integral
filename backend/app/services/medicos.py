@@ -6,13 +6,11 @@ from app.repository import medicos as db
 
 
 
-def listar_medicos():
-    """Obtiene el listado de médicos desde la capa de persistencia."""
-    if not hasattr(db, "listar_medicos"):
-        raise NotImplementedError(
-            "Falta implementar listar_medicos en la capa de base de datos."
-        )
-
+def listar_medicos(id_especialidad=None):
+    """Obtiene el listado de médico. Si llega una especialidad, solo devuelve los de esa especialidad."""
+    if id_especialidad is not None:
+        return db.listar_medicos_por_especialidad(id_especialidad)
+        
     return db.listar_medicos()
 
 
