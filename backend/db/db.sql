@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS consultorios (
 
 CREATE TABLE IF NOT EXISTS especialidades (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(50) UNIQUE NOT NULL
+    nombre VARCHAR(50) UNIQUE NOT NULL,
     descripcion VARCHAR(256),
     activo BOOLEAN DEFAULT TRUE
 );
