@@ -1,0 +1,122 @@
+@import "especialidades.css";
+
+.boton-alta,
+button[type="submit"].boton-alta,
+a.boton-alta {
+    background-color: #194d5b;
+    color: #ffffff !important;
+    padding: 0.65rem 1.25rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    line-height: 1.2;
+}
+
+.boton-alta:hover,
+.boton-alta:hover,
+a.boton-alta:hover {
+    background-color: #123843;
+    color: #ffffff !important;
+}
+
+/* Botón secundario / Cancelar */
+.boton-cancelar,
+a.boton-cancelar {
+    padding: 0.65rem 1.25rem;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #333333;
+    font-weight: 500;
+    font-size: 0.9rem;
+    background-color: #ffffff;
+    display: inline-block;
+    transition: background-color 0.2s ease;
+}
+
+.boton-cancelar:hover,
+a.boton-cancelar:hover {
+    background-color: #f6f8fa;
+}
+
+/* Botón/Enlace de baja inline */
+.form-baja-inline {
+    display: inline;
+}
+
+.boton-link-baja {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+}
+
+/* Alertas y tablas */
+.alert-error-banner {
+    margin-bottom: 1rem;
+    color: #721c24;
+    background-color: #f8d7da;
+    padding: 0.75rem 1.25rem;
+    border-radius: 6px;
+    border: 1px solid #f5c6cb;
+}
+
+.tabla-vacia {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+}
+
+/* Estructura de la tarjeta del formulario */
+.form-container {
+    padding: 2rem;
+    max-width: 800px;
+}
+
+.form-titulo {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0f3d4c;
+    margin-bottom: 1.5rem;
+}
+
+.form-campo {
+    margin-bottom: 1.25rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-campo label {
+    font-weight: 700;
+    color: #0f3d4c;
+    margin-bottom: 0.4rem;
+    font-size: 0.9rem;
+}
+
+.form-campo .form-control {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-acciones {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-top: 1.5rem;
+}
+
+.form-aviso {
+    max-width: 800px;
+}

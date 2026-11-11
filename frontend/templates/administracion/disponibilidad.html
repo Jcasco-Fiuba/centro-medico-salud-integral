@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}
+Disponibilidad | Centro Médico
+{% endblock %}
+
+{% block body %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/administracion/disponibilidad.css') }}">
+
+<div class="container admin-disponibilidad">
+
+    <h1>Disponibilidad de turnos</h1>
+
+    <p>Consultá los horarios disponibles de cada médico.</p>
+
+    <section class="card">
+
+        <h2>Buscar disponibilidad</h2>
+
+        <form method="GET">
+
+            <label for="medico">Médico:</label>
+
+            <select id="medico" name="medico" class="form-control" required>
+
+                <option value="">Seleccioná un médico</option>
+
+                {% for item in medicos %}
+
+                    {% if item.activo %}
+
+                        <option value="{{ item.id }}"
+                            {% if medico == item.id|string %}selected{% endif %}>
+                            {{ item.nombre }} {{ item.apellido }}
+                        </option>
+
+                    {% endif %}
+
+                {% endfor %}
+
+            </select>
+
+            <label for="fecha">Fecha:</label>
+
+            <input type="date"
+                   id="fecha"
+                   name="fecha"
+                   value="{{ fecha }}"
+                   class="form-control"
+                   required>
+
+            <button type="submit" class="button">
+                Consultar disponibilidad
+            </button>
+
+        </form>
+
+    </section>
+
+
+    <section class="card">
+
+        <h2>Horarios disponibles</h2>
+
+        {% if error %}
+
+            <p class="alert alert--error">
+                {{ error }}
+            </p>
+
+        {% elif medico and fecha %}
+
+            {% if turnos %}
+
+                <p>
+                    Se encontraron {{ turnos|length }} turnos disponibles.
+                </p>
+
+                <div class="horarios-grid">
+
+                    {% for turno in turnos %}
+
+                        <div class="tarjeta-horario">
+
+                            <strong>
+                                {{ turno.fecha_hora }}
+                            </strong>
+
+                            <p>
+                                Consultorio {{ turno.id_consultorio }}
+                            </p>
+
+                            <span class="horario-disponible">
+                                ● Disponible
+                            </span>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% else %}
+
+                <p>
+                    No hay turnos disponibles para el médico y la fecha seleccionados.
+                </p>
+
+            {% endif %}
+
+        {% else %}
+
+            <p>
+                Seleccioná un médico y una fecha para consultar los horarios.
+            </p>
+
+        {% endif %}
+
+        <br>
+
+        <a href="{{ url_for('administracion.agendas') }}"
+           class="button button--secondary">
+            Volver a gestión de turnos
+        </a>
+
+    </section>
+
+</div>
+
+{% endblock %}

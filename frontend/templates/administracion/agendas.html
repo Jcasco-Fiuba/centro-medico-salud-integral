@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}
+Gestion de turnos | Centro Médico
+{% endblock %}
+
+{% block body %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/administracion/agendas.css') }}">
+
+<div class="container admin-turnos">
+
+    <div class="encabezado-turnos">
+
+        <div>
+            <h1>Gestión de turnos</h1>
+            <p>Organizá la disponibilidad de cada profesional y consultorio.</p>
+        </div>
+
+        <div class="acciones-turnos">
+
+            <a href="{{ url_for('administracion.disponibilidad') }}" class="button button--secondary">
+                Consultar disponibilidad
+            </a>
+
+            <a href="{{ url_for('administracion.nuevo_turno') }}" class="button">
+                Crear turno
+            </a>
+
+        </div>
+
+    </div>
+
+    <section class="card">
+
+        <h2>Filtros de busqueda</h2>
+        {% if medico %}
+        <p>Médico seleccionado: {{ medico }}</p>
+        {% endif %}
+
+        {% if estado %}
+        <p>Estado seleccionado: {{ estado }}</p>
+        {% endif %}
+
+        <form method="GET">
+
+            <div class="filtros-grid">
+
+                <div class="campo-filtro">
+
+                    <label for="medico">Médico:</label>
+
+                    <select id="medico" name="medico" class="form-control">
+
+                        <option value="">Todos los médicos</option>
+
+                        {% for item in medicos %}
+
+                        <option value="{{ item.id }}" {% if medico==item.id|string %}selected{% endif %}>
+                            {{ item.nombre }} {{ item.apellido }}
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                    {% if error_medicos %}
+                    <p class="alert alert--error">
+                        {{ error_medicos }}
+                    </p>
+                    {% endif %}
+
+                </div>
+
+
+                <div class="campo-filtro">
+
+                    <label for="estado">Estado:</label>
+
+                    <select id="estado" name="estado" class="form-control">
+
+                        <option value="">Todos los estados</option>
+
+                        <option value="disponible" {% if estado=="disponible" %}selected{% endif %}>
+                            Disponible
+                        </option>
+
+                        <option value="reservado" {% if estado=="reservado" %}selected{% endif %}>
+                            Reservado
+                        </option>
+
+                        <option value="confirmado" {% if estado=="confirmado" %}selected{% endif %}>
+                            Confirmado
+                        </option>
+
+                        <option value="atendido" {% if estado=="atendido" %}selected{% endif %}>
+                            Atendido
+                        </option>
+
+                        <option value="cancelado" {% if estado=="cancelado" %}selected{% endif %}>
+                            Cancelado
+                        </option>
+
+                        <option value="ausente" {% if estado=="ausente" %}selected{% endif %}>
+                            Ausente
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+            <button type="submit" class="button">
+                Aplicar filtros
+            </button>
+
+        </form>
+
+        <br>
+
+        {% if error %}
+        <p class="alert alert--error">{{ error }}</p>
+        {% endif %}
+
+        {% if request.args.get("creado") == "1" %}
+        <p class="alert alert--success">
+            El turno se creó correctamente.
+        </p>
+        {% endif %}
+
+        <h2>Listado de turnos</h2>
+
+        <table class="tabla-turnos">
+
+            <tr>
+                <th>Médico</th>
+                <th>Consultorio</th>
+                <th>Fecha y hora</th>
+                <th>Estado</th>
+            </tr>
+
+            {% for turno in turnos %}
+
+            <tr>
+                <td>{{ turno.medico_nombre or turno.id_medico }}</td>
+                <td>{{ turno.consultorio_nombre or turno.id_consultorio }}</td>
+                <td>{{ turno.fecha_hora }}</td>
+                <td>
+                    <span class="estado-turno estado-{{ turno.estado }}">
+                        {{ turno.estado|capitalize }}
+                    </span>
+                </td>
+            </tr>
+
+            {% else %}
+
+            <tr>
+                <td colspan="4">No hay turnos para mostrar.</td>
+            </tr>
+
+            {% endfor %}
+
+        </table>
+    </section>
+
+</div>
+
+{% endblock %}

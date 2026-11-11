@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de especialidades | Administración{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/administracion/especialidades.css') }}">
+{% endblock %}
+
+{% block body %}
+
+<div class="dashboard-layout">
+
+    <!-- BARRA LATERAL -->
+    <aside class="sidebar">
+
+        <div class="sidebar-logo">
+            <div class="logo-icono">
+                <span>+</span>
+            </div>
+            <div class="logo-texto">
+                <h2>Centro Médico</h2>
+                <p>Salud Integral</p>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <p class="sidebar-titulo">Gestión interna</p>
+
+            <a href="{{ url_for('administracion.dashboard') }}" class="nav-link">Dashboard</a>
+            <a href="{{ url_for('administracion.especialidades') }}" class="nav-link activo">Especialidades</a>
+            <a href="{{ url_for('administracion.medicos') }}" class="nav-link">Médicos</a>
+            <a href="{{ url_for('administracion.consultorios') }}" class="nav-link">Consultorios</a>
+            <a href="{{ url_for('administracion.agendas') }}" class="nav-link">Agendas y horarios</a>
+        </nav>
+
+        <div class="sidebar-info">
+            <h3>Administrador · Gestiones del centro</h3>
+            <p>Atención presencial · 8 a 20 h</p>
+        </div>
+
+    </aside>
+
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="dashboard-main">
+
+        <!-- BARRA SUPERIOR -->
+        <header class="topbar">
+
+            <p>Administración / Gestión del centro</p>
+
+            <div class="topbar-usuario">
+                <span>Mariana López · Administradora ⌵</span>
+            </div>
+
+        </header>
+
+
+        <!-- CONTENIDO DE ESPECIALIDADES -->
+        <div class="dashboard-content">
+            
+            <!-- ENCABEZADO -->
+            <section class="dashboard-header">
+
+                <p class="breadcrumb">ADMINISTRACIÓN · SOLO ROL ADMINISTRADOR</p>
+
+                <h1>Gestión de especialidades</h1>
+
+                <p>Mantené los datos del centro. Las bajas son lógicas y conservan los históricos.</p>
+
+            </section>
+
+
+            <!-- MENSAJES DE CONFIRMACIÓN -->
+            {% if error %}
+            <div class="mensaje-error" style="margin-bottom: 16px;">✕ {{ error }}</div>
+            {% endif %}
+            {% if request.args.get('creada') %}
+            <div class="mensaje-exito">✓ La especialidad fue creada correctamente.</div>
+            {% elif request.args.get('editada') %}
+            <div class="mensaje-exito">✓ La especialidad fue actualizada correctamente.</div>
+            {% elif request.args.get('baja') %}
+            <div class="mensaje-info">La especialidad fue dada de baja. Los turnos existentes se conservan.</div>
+            {% endif %}
+
+            <!-- BARRA DE ACCIÓN Y RESUMEN -->
+            <section class="especialidades-toolbar">
+
+                <p class="resumen-conteo">
+                    {% if especialidades %}
+                        {% set total = especialidades | length %}
+                        {% set activas = especialidades | selectattr('activo') | list | length %}
+                        {% set inactivas = especialidades | rejectattr('activo') | list | length %}
+                        {{ total }} especialidades · 
+                        {{ activas }} activas · 
+                        {{ inactivas }} inactiva{% if inactivas != 1 %}s{% endif %}
+                    {% else %}
+                        0 especialidades
+                    {% endif %}
+                </p>
+
+                <a href="{{ url_for('administracion.crear_especialidad') }}" class="btn-alta" style="text-decoration:none; display:inline-flex; align-items:center;">+ Alta de especialidad</a>
+
+            </section>
+
+            
+            <!-- FILTROS -->
+            <form method="GET" action="{{ url_for('administracion.especialidades') }}" class="especialidades-filtros">
+                <div class="filtro-grupo">
+                    <label for="buscar-especialidad">Buscar especialidad</label>
+                    <input type="text" id="buscar-especialidad" name="buscar" placeholder="Nombre de la especialidad" value="{{ request.args.get('buscar', '') }}">
+                </div>
+
+                <div class="filtro-grupo">
+                    <label for="filtro-estado">Estado</label>
+                    <select id="filtro-estado" name="estado" onchange="this.form.submit()">
+                        <option value="">Todos los estados</option>
+                        <option value="activo" {% if request.args.get('estado') == 'activo' %}selected{% endif %}>Activo</option>
+                        <option value="inactivo" {% if request.args.get('estado') == 'inactivo' %}selected{% endif %}>Inactivo</option>
+                    </select>
+                </div>
+            </form>
+
+            <!-- TABLA DE ESPECIALIDADES -->
+            <section class="panel-tabla">
+
+                <table class="tabla-especialidades">
+                    <thead>
+                        <tr>
+                            <th>Especialidad</th>
+                            <th>Descripción</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if especialidades %}
+                            {% for esp in especialidades %}
+                            {% set esp_id = esp.id if esp.id is defined else esp.get('id_especialidad') %}
+                            <tr class="{% if not esp.activo %}fila-inactiva{% endif %}">
+                                <td class="col-nombre">{{ esp.nombre }}</td>
+                                <td class="col-descripcion">{{ esp.descripcion or '' }}</td>
+                                <td class="col-estado">
+                                    {% if esp.activo %}
+                                    <span class="estado-activo">✓ Activo</span>
+                                    {% else %}
+                                    <span class="estado-inactivo">✕ Inactivo</span>
+                                    {% endif %}
+                                </td>
+                                <td class="col-acciones">
+                                    <a href="{{ url_for('administracion.editar_especialidad', id=esp_id) }}" class="accion-link">Editar</a>
+                                    {% if esp.activo %}
+                                        <span class="accion-separador">·</span>
+                                        <form action="{{ url_for('administracion.dar_baja_especialidad', id=esp_id) }}" method="POST" style="display:inline;">
+                                            <button type="submit" class="accion-link-btn">Dar de baja</button>
+                                        </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 20px;">No se encontraron especialidades.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+
+            </section>
+
+
+            <!-- AVISO DE BAJA LÓGICA -->
+            <aside class="panel-aviso-baja">
+
+                <span class="aviso-icono">!</span>
+
+                <div class="aviso-texto">
+                    <h3>Baja lógica, sin borrar información</h3>
+                    <p>Dar de baja impide nuevas selecciones. Los turnos existentes y sus registros se conservan; no se cancelan automáticamente. Un registro inactivo no ofrece una baja repetida.</p>
+                </div>
+
+            </aside>
+
+        </div>
+
+    </main>
+
+</div>
+
+{% endblock %}
