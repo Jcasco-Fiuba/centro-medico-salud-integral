@@ -3,6 +3,7 @@ import logging
 from flask import Flask
 
 from app.constants import API_PORT
+from app.routes.turnos import turnos_bp
 
 logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(name)s - %(message)s')
 
