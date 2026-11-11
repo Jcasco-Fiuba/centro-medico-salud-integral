@@ -37,35 +37,35 @@ def get_connection() -> MySQLConnection:
 # ---------------------------------------------------------------
 
 def ejecutar_consulta(sql: str, parametros: dict = None) -> list[dict]:
-    """Ejecuta una SELECT y devuelve todas las filas como lista de dicts."""
+    """Ejecuta una SELECT parametrizada y devuelve filas como diccionarios."""
     conexion = get_connection()
-    cursor = conexion.cursor(dictionary=True)
-
-    cursor.execute(sql, parametros)
-    filas = cursor.fetchall()
-
-    cursor.close()
-    conexion.close()
-
-    return filas
+    cursor = None
+    try:
+        cursor = conexion.cursor(dictionary=True)
+        cursor.execute(sql, parametros or {})
+        return cursor.fetchall()
+    finally:
+        if cursor is not None:
+            cursor.close()
+        conexion.close()
 
 
 def ejecutar_mutacion(sql: str, parametros: dict = None) -> int:
-    """
-    Ejecuta un INSERT, UPDATE o DELETE y hace commit.
-    Retorna el id autoincremental generado por el INSERT (0 si no aplica).
-    """
+    """Ejecuta una mutación parametrizada y revierte la transacción si falla."""
     conexion = get_connection()
-    cursor = conexion.cursor()
-
-    cursor.execute(sql, parametros)
-    conexion.commit()
-    id_generado = cursor.lastrowid or 0
-
-    cursor.close()
-    conexion.close()
-
-    return id_generado
+    cursor = None
+    try:
+        cursor = conexion.cursor()
+        cursor.execute(sql, parametros or {})
+        conexion.commit()
+        return cursor.lastrowid or 0
+    except Exception:
+        conexion.rollback()
+        raise
+    finally:
+        if cursor is not None:
+            cursor.close()
+        conexion.close()
 
 # ---------------------------------------------------------------
 # Queries de pacientes
@@ -149,20 +149,20 @@ def actualizar_paciente(dni, campos: dict) -> dict:
     """
 
     campos_validos = {}
- 
+
     for campo, valor in campos.items():
         if campo in CAMPOS_EDITABLES_PACIENTE:
             campos_validos[campo] = valor
- 
+
     if not campos_validos:
         return obtener_paciente_por_dni(dni)
- 
+
     set_clause = ", ".join(f"{campo} = %({campo})s" for campo in campos_validos)
     sql = f"UPDATE usuarios SET {set_clause} WHERE dni = %(dni)s AND rol = 'paciente'"
     parametros = {**campos_validos, "dni": dni}
- 
+
     ejecutar_mutacion(sql, parametros)
- 
+
     return obtener_paciente_por_dni(dni)
 
 
@@ -173,16 +173,16 @@ def baja_paciente(dni) -> dict:
     """
 
     sql = "UPDATE usuarios SET activo = FALSE WHERE dni = %(dni)s AND rol = 'paciente'"
- 
+
     ejecutar_mutacion(sql, {'dni': dni})
- 
+
     return obtener_paciente_por_dni(dni)
 
 # ---------------------------------------------------------------
 # Queries de medicos
 # ---------------------------------------------------------------
 
-CAMPOS_EDITABLES_MEDICO = {'nombre', 'apellido', 'matricula', 'id_consultorio'}
+CAMPOS_EDITABLES_MEDICO = {'nombre', 'apellido', 'id_consultorio'}
 
 def listar_medicos() -> list[dict]:
 
@@ -216,21 +216,37 @@ def obtener_medico_por_id(id) -> dict:
 
 
 def crear_medico(datos: dict) -> int:
-
-    """
-    Recibe datos del nuevo medico y lo agrega a la base de datos.
-    """
-
-    sql = """
-    INSERT INTO medicos (nombre, apellido, matricula, id_consultorio)
-    VALUES (%(nombre)s, %(apellido)s, %(matricula)s, %(id_consultorio)s)
-    """
-    return ejecutar_mutacion(sql, {
-        'nombre': datos['nombre'],
-        'apellido': datos['apellido'],
-        'matricula': datos['matricula'],
-        'id_consultorio': datos['id_consultorio']
-    })
+    """Crea el médico y sus asociaciones de especialidad en una transacción."""
+    conexion = get_connection()
+    cursor = None
+    try:
+        cursor = conexion.cursor()
+        cursor.execute(
+            """INSERT INTO medicos (nombre, apellido, matricula, id_consultorio)
+               VALUES (%(nombre)s, %(apellido)s, %(matricula)s, %(id_consultorio)s)""",
+            {
+                'nombre': datos['nombre'],
+                'apellido': datos['apellido'],
+                'matricula': datos['matricula'],
+                'id_consultorio': datos['id_consultorio'],
+            },
+        )
+        id_medico = cursor.lastrowid
+        for id_especialidad in datos.get('especialidades', []):
+            cursor.execute(
+                """INSERT INTO medicos_especialidades (id_medico, id_especialidad)
+                   VALUES (%(id_medico)s, %(id_especialidad)s)""",
+                {'id_medico': id_medico, 'id_especialidad': id_especialidad},
+            )
+        conexion.commit()
+        return id_medico
+    except Exception:
+        conexion.rollback()
+        raise
+    finally:
+        if cursor is not None:
+            cursor.close()
+        conexion.close()
 
 
 def actualizar_medico(id, campos: dict) -> dict:
@@ -241,20 +257,20 @@ def actualizar_medico(id, campos: dict) -> dict:
     """
 
     campos_validos = {}
- 
+
     for campo, valor in campos.items():
         if campo in CAMPOS_EDITABLES_MEDICO:
             campos_validos[campo] = valor
- 
+
     if not campos_validos:
         return obtener_medico_por_id(id)
- 
+
     set_clause = ", ".join(f"{campo} = %({campo})s" for campo in campos_validos)
     sql = f"UPDATE medicos SET {set_clause} WHERE id = %(id)s"
     parametros = {**campos_validos, "id": id}
- 
+
     ejecutar_mutacion(sql, parametros)
- 
+
     return obtener_medico_por_id(id)
 
 
@@ -265,36 +281,10 @@ def baja_medico(id) -> dict:
     """
 
     sql = "UPDATE medicos SET activo = FALSE WHERE id = %(id)s"
- 
+
     ejecutar_mutacion(sql, {'id': id})
- 
+
     return obtener_medico_por_id(id)
-
-def listar_especialidades_por_medico(id_medico) -> list[dict]:
-
-    """
-    Recibe el id de un medico y devuelve sus especialidades.
-    """
-
-    sql = """
-    SELECT especialidades.id, especialidades.nombre
-    FROM especialidades
-    INNER JOIN medicos_especialidades
-        ON medicos_especialidades.id_especialidad = especialidades.id
-    WHERE medicos_especialidades.id_medico = %(id_medico)s
-    ORDER BY especialidades.nombre
-    """
-    return ejecutar_consulta(sql, {'id_medico': id_medico})
-
-
-def borrar_especialidades_medico(id_medico) -> int:
-
-    """
-    Recibe el id de un medico y le quita todas sus especialidades.
-    """
-
-    sql = "DELETE FROM medicos_especialidades WHERE id_medico = %(id_medico)s"
-    return ejecutar_mutacion(sql, {'id_medico': id_medico})
 
 # ---------------------------------------------------------------
 # Queries de turnos
@@ -315,7 +305,7 @@ def listar_turnos() -> list[dict]:
 
 
 def buscar_turno_id(id):
-    
+
     """
     Recibe un id de turno y retorna el detalle del mismo.
     """
@@ -324,9 +314,9 @@ def buscar_turno_id(id):
     SELECT id, id_usuario, id_medico, id_consultorio, fecha_hora, estado, string_token, hora_checkin
     FROM turnos
     WHERE id = %(id)s
-    """  
+    """
     filas = ejecutar_consulta(sql, {'id': id})
-    
+
     return filas[0] if filas else {}
 
 
@@ -347,7 +337,7 @@ def buscar_turno_dni(dni) -> list[dict]:
     WHERE usuarios.dni = %(dni)s
     ORDER BY turnos.fecha_hora
     """
-    
+
     return ejecutar_consulta(sql, {'dni': dni})
 
 
@@ -399,6 +389,18 @@ def buscar_turno_por_token(string_token) -> dict | None:
     return filas[0] if filas else None
 
 
+def buscar_turnos_superpuestos(id_medico, id_consultorio, fecha_hora) -> list[dict]:
+    """Busca un turno no cancelado del médico o consultorio en la franja."""
+    sql = """SELECT id FROM turnos
+             WHERE fecha_hora = %(fecha_hora)s AND estado != 'cancelado'
+               AND (id_medico = %(id_medico)s OR id_consultorio = %(id_consultorio)s)"""
+    return ejecutar_consulta(sql, {
+        'id_medico': id_medico,
+        'id_consultorio': id_consultorio,
+        'fecha_hora': fecha_hora,
+    })
+
+
 def crear_turno(datos: dict) -> dict | None:
 
     """
@@ -406,17 +408,9 @@ def crear_turno(datos: dict) -> dict | None:
     tiene un turno en ese horario retorna None.
     """
 
-    sql_existe = """
-    SELECT id
-    FROM turnos
-    WHERE id_medico = %(id_medico)s AND fecha_hora = %(fecha_hora)s
-    """
-    filas = ejecutar_consulta(sql_existe, {
-        'id_medico': datos['id_medico'],
-        'fecha_hora': datos['fecha_hora']
-    })
-
-    if filas:
+    if buscar_turnos_superpuestos(
+        datos['id_medico'], datos['id_consultorio'], datos['fecha_hora']
+    ):
         return None
 
     sql = """
@@ -460,40 +454,60 @@ def actualizar_reserva_turno(turno_id, usuario_id, token) -> dict | None:
     turno = buscar_turno_id(turno_id)
 
     if turno['string_token'] != token:
-        return None 
-
-    return turno
-
-
-def actualizar_cancelacion_turno(id, usuario_id, liberar=True) -> dict | None:
-
-    """
-    Cancela un turno reservado que pertenece al paciente indicado y
-    devuelve el resultado. Permitir liberar el horario.
-    """
-
-    turno = buscar_turno_id(id)
-
-    if not turno or turno['estado'] != 'reservado' or turno['id_usuario'] != usuario_id:
         return None
 
-    sql = """
-    UPDATE turnos
-    SET estado = 'cancelado'
-    WHERE id = %(id)s AND id_usuario = %(usuario_id)s AND estado = 'reservado'
-    """
-    ejecutar_mutacion(sql, {'id': id, 'usuario_id': usuario_id})
-
-    turno = buscar_turno_id(id)
-
-    if liberar:
-        crear_turno({
-            'id_medico': turno['id_medico'],
-            'id_consultorio': turno['id_consultorio'],
-            'fecha_hora': turno['fecha_hora']
-        })
-
     return turno
+
+
+def actualizar_cancelacion_turno(id, usuario_id=None, liberar=True) -> dict | None:
+    """Cancela y libera un turno en una transacción; el usuario es opcional mientras no haya login."""
+    conexion = get_connection()
+    cursor = None
+    try:
+        cursor = conexion.cursor(dictionary=True)
+        cursor.execute(
+            """SELECT id, id_usuario, id_medico, id_consultorio, fecha_hora, estado
+               FROM turnos WHERE id = %(id)s FOR UPDATE""",
+            {'id': int(id)},
+        )
+        turno = cursor.fetchone()
+        if not turno or turno.get('estado') != 'reservado':
+            conexion.rollback()
+            return None
+        if usuario_id is not None and turno.get('id_usuario') != int(usuario_id):
+            conexion.rollback()
+            return None
+
+        where = "id = %(id)s AND estado = 'reservado'"
+        parametros = {'id': int(id)}
+        if usuario_id is not None:
+            where += " AND id_usuario = %(usuario_id)s"
+            parametros['usuario_id'] = int(usuario_id)
+        cursor.execute(f"UPDATE turnos SET estado = 'cancelado' WHERE {where}", parametros)
+        if cursor.rowcount != 1:
+            conexion.rollback()
+            return None
+
+        if liberar:
+            cursor.execute(
+                """INSERT INTO turnos (id_medico, id_consultorio, fecha_hora)
+                   VALUES (%(id_medico)s, %(id_consultorio)s, %(fecha_hora)s)""",
+                {
+                    'id_medico': turno['id_medico'],
+                    'id_consultorio': turno['id_consultorio'],
+                    'fecha_hora': turno['fecha_hora'],
+                },
+            )
+        conexion.commit()
+    except Exception:
+        conexion.rollback()
+        raise
+    finally:
+        if cursor is not None:
+            cursor.close()
+        conexion.close()
+
+    return buscar_turno_id(id)
 
 # ---------------------------------------------------------------
 # Queries de recepcion
@@ -528,7 +542,7 @@ def buscar_turnos_sala_espera(fecha) -> list[dict]:
     """
     Devuelve los turnos confirmados del dia ordenados por hora de llegada (check-in).
     """
-    
+
     sql = """
     SELECT turnos.id, turnos.fecha_hora, turnos.hora_checkin,
     usuarios.dni, usuarios.nombre AS paciente_nombre, usuarios.apellido AS paciente_apellido,
@@ -720,3 +734,45 @@ def asociar_medico_especialidad(datos: dict) -> int:
         'id_medico': datos['id_medico'],
         'id_especialidad': datos['id_especialidad']
     })
+
+
+def listar_especialidades_por_medico(id_medico: int) -> list[dict]:
+    """Lista las especialidades asociadas a un médico."""
+    sql = """SELECT e.id, e.nombre
+             FROM especialidades AS e
+             INNER JOIN medicos_especialidades AS me ON me.id_especialidad = e.id
+             WHERE me.id_medico = %(id_medico)s
+             ORDER BY e.nombre"""
+    return ejecutar_consulta(sql, {'id_medico': int(id_medico)})
+
+
+def borrar_especialidades_medico(id_medico: int) -> int:
+    """Elimina las asociaciones de especialidad de un médico."""
+    conexion = get_connection()
+    cursor = None
+    try:
+        cursor = conexion.cursor()
+        cursor.execute(
+            "DELETE FROM medicos_especialidades WHERE id_medico = %(id_medico)s",
+            {'id_medico': int(id_medico)},
+        )
+        conexion.commit()
+        return cursor.rowcount
+    except Exception:
+        conexion.rollback()
+        raise
+    finally:
+        if cursor is not None:
+            cursor.close()
+        conexion.close()
+
+
+def listar_medicos_por_especialidad(id_especialidad: int) -> list[dict]:
+    """Lista médicos activos asociados a la especialidad indicada."""
+    sql = """SELECT DISTINCT m.id, m.nombre, m.apellido, m.matricula,
+                     m.id_consultorio, m.activo
+             FROM medicos AS m
+             INNER JOIN medicos_especialidades AS me ON me.id_medico = m.id
+             WHERE me.id_especialidad = %(id_especialidad)s AND m.activo = TRUE
+             ORDER BY m.apellido, m.nombre"""
+    return ejecutar_consulta(sql, {'id_especialidad': int(id_especialidad)})
