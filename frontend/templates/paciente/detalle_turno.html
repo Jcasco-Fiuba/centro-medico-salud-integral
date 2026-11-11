@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Detalle de tu turno | Centro Médico Salud Integral{% endblock %}
+
+{% block page_css %}
+  {# portal.css: navbar, pie y textos. mis_turnos.css: colores de estado. detalle_turno.css: columnas, QR y botones #}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/portal.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/mis_turnos.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/avisos.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/detalle_turno.css') }}">
+{% endblock %}
+
+{% block body %}
+  <header class="navegacion">
+    <a class="marca" href="{{ url_for('paciente.portal') }}">
+      <span class="logo">+</span>
+      Centro Médico Salud Integral
+    </a>
+
+    <nav class="links">
+      <a href="{{ url_for('paciente.portal') }}">Inicio</a>
+      <a href="{{ url_for('paciente.elegir_especialidad') }}">Especialidades</a>
+      <a class="activo" href="{{ url_for('paciente.mis_turnos') }}">Mis turnos</a>
+      <span class="usuario">{{ paciente.iniciales }} · {{ paciente.nombre }} {{ paciente.apellido }}</span>
+    </nav>
+  </header>
+
+  <main class="container contenido">
+    <a class="volver" href="{{ url_for('paciente.mis_turnos') }}">← Volver a Mis turnos</a>
+
+    <p class="antetitulo">Mis turnos · {{ hoy }}</p>
+    <h1>Detalle de tu turno</h1>
+    <p class="subtitulo">Consultá el comprobante y las indicaciones para tu visita.</p>
+
+    {% if error %}
+      <p class="alert alert--error">{{ error }}</p>
+    {% endif %}
+
+    {% if mensaje %}
+      <p class="alert alert--success">{{ mensaje }}</p>
+    {% endif %}
+
+    {% set estado = turno.estado|lower %}
+
+    <div class="detalle-columnas">
+      <div class="card">
+        <h2>Datos de la reserva</h2>
+
+        <span class="estado estado--{{ estado }}">● {{ estado|capitalize }}</span>
+        <p class="codigo">{{ turno.codigo }}{% if turno.emitido %} · Emitido el {{ turno.emitido }}{% endif %}</p>
+
+        <div class="dato">
+          <p class="etiqueta">Especialidad</p>
+          <p>{{ turno.especialidad }}</p>
+        </div>
+
+        <div class="dato">
+          <p class="etiqueta">Profesional</p>
+          <p>{{ turno.medico }}</p>
+        </div>
+
+        <div class="dato">
+          <p class="etiqueta">Fecha</p>
+          <p>{{ turno.fecha }}</p>
+        </div>
+
+        <div class="dato">
+          <p class="etiqueta">Hora y duración</p>
+          <p>{{ turno.hora }} h · {{ turno.duracion }} minutos</p>
+        </div>
+
+        <div class="dato">
+          <p class="etiqueta">Consultorio</p>
+          <p>{{ turno.consultorio }}</p>
+        </div>
+
+        <hr>
+
+        <div class="dato">
+          <p class="etiqueta">Paciente y DNI</p>
+          <p>{{ paciente.nombre }} {{ paciente.apellido }} · {{ paciente.dni }}</p>
+        </div>
+
+        <p class="texto-gris">{{ paciente.email }}</p>
+        <p class="enlace-color">Atención presencial</p>
+      </div>
+
+      <aside>
+        <div class="card">
+          <h2>Tu código de ingreso</h2>
+
+          {% if estado == 'reservado' %}
+            {% if turno.qr_url %}
+              <div class="qr">
+                <img src="{{ turno.qr_url }}" alt="Código QR de tu turno {{ turno.codigo }}">
+              </div>
+              <p class="texto-gris centrado">QR ilustrativo. No es válido para un check-in real.</p>
+            {% else %}
+              <p class="texto-gris centrado">Tu código de ingreso es <strong>{{ turno.codigo }}</strong>.</p>
+            {% endif %}
+            <p class="centrado"><strong>Presentá este QR en recepción.</strong></p>
+
+            <div class="aviso">
+              <p class="aviso-titulo">ⓘ Check-in: {{ turno.checkin_desde }} a {{ turno.checkin_hasta }} h</p>
+              <p>El {{ turno.fecha_corta }} se acepta desde 15 minutos antes hasta 15 minutos después, inclusive. Solo se usa una vez.</p>
+            </div>
+
+            <p class="texto-gris nota">Si no registraste tu llegada, desde las {{ turno.limite_ausente }} h el turno pasa a Ausente.</p>
+
+          {% elif estado == 'confirmado' %}
+            <div class="aviso">
+              <p class="aviso-titulo">ⓘ Llegada registrada{% if turno.checkin_hora %} a las {{ turno.checkin_hora }} h{% endif %}</p>
+              <p>QR ya utilizado. Esperá el llamado; no vuelvas a escanear.</p>
+            </div>
+
+          {% elif estado == 'atendido' %}
+            <div class="aviso">
+              <p class="aviso-titulo">ⓘ Atención finalizada</p>
+              <p>No hay un QR activo para este turno.</p>
+            </div>
+
+          {% elif estado == 'cancelado' %}
+            <div class="aviso aviso--alerta">
+              <p class="aviso-titulo">! QR anulado</p>
+              <p>{% if turno.cancelado_el %}Cancelado el {{ turno.cancelado_el }}. {% endif %}No se puede reactivar ni marcar atendido.</p>
+            </div>
+
+          {% elif estado == 'ausente' %}
+            <div class="aviso aviso--alerta">
+              <p class="aviso-titulo">! Sin llegada registrada a las {{ turno.limite_ausente }} h</p>
+              <p>No hay un QR activo para este turno.</p>
+            </div>
+          {% endif %}
+        </div>
+      </aside>
+    </div>
+
+    <div class="acciones">
+      {% if estado == 'reservado' %}
+        <a class="button" href="{{ url_for('paciente.descargar_comprobante', turno_id=turno.id) }}">Descargar comprobante</a>
+
+        {% if turno.puede_cancelar %}
+          <a class="button button--danger" href="{{ url_for('paciente.cancelar_turno', turno_id=turno.id) }}">Cancelar turno</a>
+        {% endif %}
+      {% else %}
+        <a class="button button--secondary" href="{{ url_for('paciente.mis_turnos') }}">Volver a Mis turnos</a>
+      {% endif %}
+    </div>
+
+    {% if estado == 'reservado' and turno.puede_cancelar %}
+      <div class="aviso">
+        <p class="aviso-titulo">ⓘ Cancelación hasta el {{ turno.cancelar_hasta }}</p>
+        <p>Podés cancelar con al menos 24 h de anticipación. Después de ese momento, comunicate con recepción.</p>
+      </div>
+    {% endif %}
+  </main>
+
+{% endblock %}

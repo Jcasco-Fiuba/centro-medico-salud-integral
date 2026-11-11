@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Elegí fecha y hora | Centro Médico Salud Integral{% endblock %}
+
+{% block page_css %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/portal.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/especialidad.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/profesional.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/avisos.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/fecha.css') }}">
+{% endblock %}
+
+{% block body %}
+  <header class="navegacion">
+    <a class="marca" href="{{ url_for('paciente.portal') }}">
+      <span class="logo">+</span>
+      Centro Médico Salud Integral
+    </a>
+
+    <nav class="links">
+      <a href="{{ url_for('paciente.portal') }}">Inicio</a>
+      <a class="activo" href="{{ url_for('paciente.elegir_especialidad') }}">Especialidades</a>
+      <a href="{{ url_for('paciente.mis_turnos') }}">Mis turnos</a>
+      <span class="usuario">{{ paciente.iniciales }} · {{ paciente.nombre }} {{ paciente.apellido }}</span>
+    </nav>
+  </header>
+
+  <main class="container contenido">
+    <p class="antetitulo">Nueva reserva · Paso 3 de 4</p>
+    <h1>Elegí cuándo venir</h1>
+    <p class="subtitulo">
+      {{ especialidad.nombre }} · {{ medico.nombre_completo }}{% if consultorio %} · {{ consultorio }}{% endif %}
+    </p>
+
+    <div class="card pasos">
+      <p class="paso hecho"><span class="numero">✓</span> Especialidad</p>
+      <p class="paso hecho"><span class="numero">✓</span> Profesional</p>
+      <p class="paso actual"><span class="numero">3</span> Fecha y hora</p>
+      <p class="paso"><span class="numero">4</span> Confirmación</p>
+    </div>
+
+    {% if error %}
+      <p class="alert alert--error">{{ error }}</p>
+    {% endif %}
+
+    <div class="columnas">
+      {# ---------- Calendario: cada día es un link que vuelve a esta página con ?fecha=AAAA-MM-DD ---------- #}
+      <div class="card">
+        <div class="calendario-cabecera">
+          {% if mes_anterior %}
+            <a class="mes-nav" aria-label="Mes anterior"
+               href="{{ url_for('paciente.elegir_fecha', especialidad=especialidad_id, medico=medico_id, mes=mes_anterior) }}">‹</a>
+          {% else %}
+            <span class="mes-nav mes-nav--off">‹</span>
+          {% endif %}
+
+          <strong>{{ mes_titulo }}</strong>
+
+          <a class="mes-nav" aria-label="Mes siguiente"
+             href="{{ url_for('paciente.elegir_fecha', especialidad=especialidad_id, medico=medico_id, mes=mes_siguiente) }}">›</a>
+        </div>
+
+        <table class="calendario-tabla">
+          <thead>
+            <tr>
+              {% for letra in ['L', 'M', 'M', 'J', 'V', 'S', 'D'] %}<th>{{ letra }}</th>{% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for semana in semanas %}
+              <tr>
+                {% for dia in semana %}
+                  <td>
+                    {% if dia is none %}
+                    {% elif dia.pasado %}
+                      <span class="dia dia--pasado">{{ dia.dia }}</span>
+                    {% else %}
+                      <a class="dia{% if dia.disponible %} dia--disponible{% endif %}{% if dia.seleccionado %} dia--seleccionado{% endif %}"
+                         href="{{ url_for('paciente.elegir_fecha', especialidad=especialidad_id, medico=medico_id, mes=mes, fecha=dia.iso) }}">
+                        {{ dia.dia }}{% if dia.seleccionado %} ✓{% endif %}
+                      </a>
+                    {% endif %}
+                  </td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <p class="texto-gris leyenda">Destacado: con disponibilidad · Tachado: pasado, no seleccionable. Hoy: {{ hoy_texto }}.</p>
+      </div>
+
+      <div class="card">
+        {% if fecha %}
+          <h3 class="titulo-resumen">{{ fecha.titulo }}</h3>
+          <p class="texto-gris">{{ fecha.subtitulo }}</p>
+
+          {% if fecha_pasada %}
+            <div class="aviso aviso--alerta">
+              <p class="aviso-titulo">! Solo podés reservar turnos futuros</p>
+              <p>Hoy es {{ hoy_texto }}. El {{ fecha.corta }} no admite selección.</p>
+            </div>
+            <a class="button boton-bloque" href="{{ url_for('paciente.elegir_fecha', especialidad=especialidad_id, medico=medico_id, mes=mes) }}">Elegir una fecha futura</a>
+
+          {% elif horarios %}
+            {# Elección: pasa al paso 4 con ?turno=<id> #}
+            <form method="GET" action="{{ url_for('paciente.confirmar_reserva') }}">
+              <input type="hidden" name="especialidad" value="{{ especialidad_id }}">
+
+              <div class="horarios">
+                {% for h in horarios %}
+                  <label class="horario">
+                    <input type="radio" name="turno" value="{{ h.id }}" required>
+                    {{ h.hora }} h
+                  </label>
+                {% endfor %}
+              </div>
+
+              <div class="botones">
+                <a class="button button--secondary" href="{{ url_for('paciente.elegir_profesional', especialidad=especialidad_id, medico=medico_id) }}">← Cambiar profesional</a>
+                <button class="button" type="submit">→ Revisar y confirmar</button>
+              </div>
+            </form>
+
+          {% else %}
+            <div class="aviso aviso--alerta">
+              <p class="aviso-titulo">! No hay horarios disponibles</p>
+              <p>{{ medico.nombre_completo }} no tiene cupos libres para esta fecha.</p>
+            </div>
+            <a class="button boton-bloque" href="{{ url_for('paciente.elegir_fecha', especialidad=especialidad_id, medico=medico_id, mes=mes) }}">Elegir otra fecha</a>
+            <a class="button button--secondary boton-bloque" href="{{ url_for('paciente.elegir_profesional', especialidad=especialidad_id, medico=medico_id) }}">Cambiar profesional</a>
+          {% endif %}
+
+        {% else %}
+          <h3 class="titulo-resumen">Elegí un día</h3>
+          <p class="pendiente">Seleccioná en el calendario un día resaltado para ver los horarios disponibles.</p>
+
+          <div class="botones">
+            <a class="button button--secondary" href="{{ url_for('paciente.elegir_profesional', especialidad=especialidad_id, medico=medico_id) }}">← Volver</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </main>
+
+{% endblock %}

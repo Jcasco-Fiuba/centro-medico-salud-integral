@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Mis turnos | Centro Médico Salud Integral{% endblock %}
+
+{% block page_css %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/portal.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/mis_turnos.css') }}">
+{% endblock %}
+
+{% macro tarjeta_turno(turno) %}
+  <div class="card turno-card">
+    <div class="turno">
+      <div class="fecha-turno">
+        <span class="fecha-dia">{{ turno.dia }}</span>
+        <span class="fecha-mes">{{ turno.mes }}</span>
+      </div>
+
+      <div class="turno-info">
+        <div class="fila">
+          <h3>{{ turno.especialidad }}</h3>
+          <span class="estado estado--{{ turno.estado|lower }}">● {{ turno.estado|capitalize }}</span>
+        </div>
+        <p class="turno-medico">{{ turno.medico }}</p>
+        <p class="texto-gris">{{ turno.fecha }} · {{ turno.hora }} h</p>
+        <p class="texto-gris">{{ turno.sede }} · {{ turno.consultorio_nombre }}</p>
+      </div>
+    </div>
+
+    {% if turno.es_proximo %}
+      <div class="turno-acciones">
+        <a class="button button--secondary" href="{{ url_for('paciente.detalle_turno', turno_id=turno.id) }}">Ver comprobante</a>
+
+        {% if turno.puede_cancelar %}
+          {# Cancelar: lleva a la pantalla de confirmación #}
+          <a class="boton-cancelar" href="{{ url_for('paciente.cancelar_turno', turno_id=turno.id) }}">Cancelar turno</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+{% endmacro %}
+
+{% block body %}
+  <header class="navegacion">
+    <a class="marca" href="{{ url_for('paciente.portal') }}">
+      <span class="logo">+</span>
+      Centro Médico Salud Integral
+    </a>
+
+    <nav class="links">
+      <a href="{{ url_for('paciente.portal') }}">Inicio</a>
+      <a href="{{ url_for('paciente.elegir_especialidad') }}">Especialidades</a>
+      <a class="activo" href="{{ url_for('paciente.mis_turnos') }}">Mis turnos</a>
+      <span class="usuario">{{ paciente.iniciales }} · {{ paciente.nombre }} {{ paciente.apellido }}</span>
+    </nav>
+  </header>
+
+  <main class="container contenido">
+    <div class="encabezado">
+      <div>
+        <p class="antetitulo">Portal de pacientes</p>
+        <h1>Mis turnos</h1>
+        {% if total > 0 %}
+          <p class="subtitulo">{{ paciente.nombre }} {{ paciente.apellido }} · Consultá tus próximas visitas y tu historial de atención.</p>
+        {% else %}
+          <p class="subtitulo">{{ paciente.nombre }} {{ paciente.apellido }} · Tus reservas aparecen en este espacio.</p>
+        {% endif %}
+      </div>
+
+      {% if total > 0 %}
+        <a class="button" href="{{ url_for('paciente.elegir_especialidad') }}">+ Reservar un turno</a>
+      {% endif %}
+    </div>
+
+    {% if error %}
+      <p class="alert alert--error">{{ error }}</p>
+    {% endif %}
+
+    {% if error %}
+      {# el mensaje de error ya se muestra arriba #}
+    {% elif total > 0 or filtro_estado or filtro_especialidad %}
+
+      <div class="filtros-barra">
+        <div>
+          <p class="resumen-total">{{ total }} turno{{ '' if total == 1 else 's' }} en tu historial</p>
+          <p class="texto-gris">{{ proximos|length }} próximo{{ '' if proximos|length == 1 else 's' }} · {{ anteriores|length }} anterior{{ '' if anteriores|length == 1 else 'es' }}</p>
+        </div>
+
+        {# Filtros: vuelve a esta misma página con ?estado=...&especialidad=... #}
+        <form method="GET" action="{{ url_for('paciente.mis_turnos') }}" class="filtros">
+          <div class="form-field">
+            <label class="form-field__label" for="estado">Estado</label>
+            <select class="form-control" id="estado" name="estado">
+              <option value="">Todos los estados</option>
+              {% for e in estados %}
+                <option value="{{ e }}" {% if filtro_estado == e %}selected{% endif %}>{{ e|capitalize }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label class="form-field__label" for="especialidad">Especialidad</label>
+            <select class="form-control" id="especialidad" name="especialidad">
+              <option value="">Todas las especialidades</option>
+              {% for esp in especialidades %}
+                <option value="{{ esp.id }}" {% if filtro_especialidad|string == esp.id|string %}selected{% endif %}>{{ esp.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <button class="button button--secondary" type="submit">Filtrar</button>
+        </form>
+      </div>
+
+      {% if proximos %}
+        <h2 class="seccion-titulo">Próximos turnos <span class="contador">{{ proximos|length }}</span></h2>
+
+        <div class="turnos-grid">
+          {% for turno in proximos %}
+            {{ tarjeta_turno(turno) }}
+          {% endfor %}
+        </div>
+
+        <div class="aviso">
+          <p class="aviso-titulo">ⓘ ¿No podés asistir?</p>
+          <p>Si no podés asistir, cancelá con al menos 24 horas de anticipación. Pasado ese plazo, comunicate con recepción.</p>
+        </div>
+      {% endif %}
+
+      {% if anteriores %}
+        <h2 class="seccion-titulo">Turnos anteriores <span class="contador">{{ anteriores|length }}</span></h2>
+
+        <div class="turnos-lista">
+          {% for turno in anteriores %}
+            {{ tarjeta_turno(turno) }}
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if not proximos and not anteriores %}
+        <div class="card vacio">
+          <h2>No encontramos turnos</h2>
+          <p class="texto-gris">Probá con otros filtros para ver el resto de tu historial.</p>
+          <a class="button button--secondary" href="{{ url_for('paciente.mis_turnos') }}">Quitar filtros</a>
+        </div>
+      {% endif %}
+
+    {% else %}
+
+      <div class="card vacio">
+        <h2>Todavía no tenés turnos</h2>
+        <p class="texto-gris">Cuando hagas tu primera reserva, vas a poder consultar el detalle y tu comprobante desde acá.</p>
+        <a class="button" href="{{ url_for('paciente.elegir_especialidad') }}">Reservar un turno</a>
+      </div>
+
+    {% endif %}
+  </main>
+
+{% endblock %}

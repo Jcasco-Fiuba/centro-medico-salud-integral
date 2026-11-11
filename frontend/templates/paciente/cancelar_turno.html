@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Cancelar turno | Centro Médico Salud Integral{% endblock %}
+
+{% block page_css %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/portal.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/mis_turnos.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/avisos.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/cancelar_turno.css') }}">
+{% endblock %}
+
+{% block body %}
+  <header class="navegacion">
+    <a class="marca" href="{{ url_for('paciente.portal') }}">
+      <span class="logo">+</span>
+      Centro Médico Salud Integral
+    </a>
+
+    <nav class="links">
+      <a href="{{ url_for('paciente.portal') }}">Inicio</a>
+      <a href="{{ url_for('paciente.elegir_especialidad') }}">Especialidades</a>
+      <a class="activo" href="{{ url_for('paciente.mis_turnos') }}">Mis turnos</a>
+      <span class="usuario">{{ paciente.iniciales }} · {{ paciente.nombre }} {{ paciente.apellido }}</span>
+    </nav>
+  </header>
+
+  <main class="container contenido">
+
+    {% if vista == 'confirmar' %}
+      <div class="card confirmacion" role="dialog" aria-labelledby="titulo-cancelar">
+        <h2 id="titulo-cancelar">¿Querés cancelar este turno?</h2>
+        <p class="texto-gris">Esta acción es irreversible. El horario se libera y tu QR queda anulado.</p>
+
+        <p class="destacado">{{ turno.especialidad }} · {{ turno.medico }}</p>
+        <p>{{ turno.fecha_numerica }} · {{ turno.hora }} h · {{ turno.duracion }} minutos</p>
+        <p class="texto-gris">{{ turno.codigo }} · {{ turno.consultorio }}</p>
+
+        {% if turno.puede_cancelar %}
+          <div class="aviso">
+            <p class="aviso-titulo">ⓘ Estás dentro del plazo permitido</p>
+            <p>Hoy es {{ hoy }}. Podés cancelar hasta el {{ turno.cancelar_hasta }}.</p>
+          </div>
+
+          <div class="acciones-modal">
+            <a class="button button--secondary" href="{{ url_for('paciente.detalle_turno', turno_id=turno.id) }}">Conservar turno</a>
+            <form method="POST" action="{{ url_for('paciente.cancelar_turno', turno_id=turno.id) }}">
+              <button class="button button--danger" type="submit">Sí, cancelar turno</button>
+            </form>
+          </div>
+        {% else %}
+          <div class="aviso aviso--alerta">
+            <p class="aviso-titulo">! Ya pasó el plazo de cancelación</p>
+            <p>Solo se puede cancelar con al menos 24 h de anticipación. Comunicate con recepción al (011) 4567-8900.</p>
+          </div>
+
+          <div class="acciones-modal">
+            <a class="button button--secondary" href="{{ url_for('paciente.detalle_turno', turno_id=turno.id) }}">Volver al turno</a>
+          </div>
+        {% endif %}
+      </div>
+
+    {% else %}
+      <div class="encabezado">
+        <div>
+          <p class="antetitulo">Portal de pacientes</p>
+          <h1>Mis turnos</h1>
+          <p class="subtitulo">{{ paciente.nombre }} {{ paciente.apellido }} · {{ hoy }}</p>
+        </div>
+        <a class="button" href="{{ url_for('paciente.elegir_especialidad') }}">+ Reservar un turno</a>
+      </div>
+
+      {% if vista == 'exito' %}
+        <div class="aviso aviso--exito">
+          <p class="aviso-titulo">✓ Turno cancelado correctamente</p>
+          <p>La reserva {{ turno.codigo }} se canceló el {{ cancelado_en }}. El horario quedó disponible.</p>
+        </div>
+
+        <div class="card resultado-turno">
+          <span class="estado estado--cancelado">✕ Cancelado</span>
+          <p>{{ turno.especialidad }} · {{ turno.medico }}</p>
+          <p class="texto-gris">{{ turno.fecha_completa }} · {{ turno.hora }} h · {{ turno.consultorio_nombre }}</p>
+
+          <div class="aviso aviso--alerta">
+            <p class="aviso-titulo">! QR anulado</p>
+            <p>Este comprobante ya no permite registrar la llegada. El turno no se puede reactivar ni marcar atendido.</p>
+          </div>
+
+          <a class="button" href="{{ url_for('paciente.elegir_especialidad') }}">Reservar otro turno</a>
+        </div>
+
+      {% else %}
+        <div class="aviso aviso--error">
+          <p class="aviso-titulo">✕ No pudimos cancelar tu turno</p>
+          <p>No se guardó ningún cambio. Tu reserva y tu QR siguen vigentes. Intentá de nuevo.</p>
+        </div>
+
+        <div class="card resultado-turno">
+          <span class="estado">● Reservado</span>
+          <p>{{ turno.codigo }} · {{ turno.especialidad }} · {{ turno.medico }}</p>
+          <p class="texto-gris">{{ turno.fecha_completa }} · {{ turno.hora }} h · {{ turno.consultorio_nombre }}</p>
+          <hr>
+
+          <div class="acciones-modal">
+            <a class="button button--secondary" href="{{ url_for('paciente.detalle_turno', turno_id=turno.id) }}">Conservar turno</a>
+            <form method="POST" action="{{ url_for('paciente.cancelar_turno', turno_id=turno.id) }}">
+              <button class="button button--danger" type="submit">Reintentar cancelación</button>
+            </form>
+          </div>
+        </div>
+      {% endif %}
+    {% endif %}
+  </main>
+
+{% endblock %}
