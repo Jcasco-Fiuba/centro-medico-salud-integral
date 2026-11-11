@@ -34,7 +34,11 @@ def _obtener_clave_jwt() -> str:
     return secret_key
 
 
-def generar_access_token(id_usuario: int, dni: str) -> tuple[str, int]:
+def generar_access_token(
+    id_usuario: int,
+    dni: str,
+    expiracion_segundos: int | None = None,
+) -> tuple[str, int]:
     """Genera un JWT firmado con HS256 para el usuario autenticado.
 
     El payload contiene exclusivamente los claims requeridos:
@@ -50,10 +54,17 @@ def generar_access_token(id_usuario: int, dni: str) -> tuple[str, int]:
         raise ValueError("id_usuario debe ser un entero positivo.")
     if not isinstance(dni, str) or not dni.strip():
         raise ValueError("dni debe ser una cadena no vacía.")
+    if expiracion_segundos is not None and (
+        isinstance(expiracion_segundos, bool)
+        or not isinstance(expiracion_segundos, int)
+        or expiracion_segundos <= 0
+    ):
+        raise ValueError("expiracion_segundos debe ser un entero positivo.")
 
+    ttl = JWT_EXPIRATION_SECONDS if expiracion_segundos is None else expiracion_segundos
     secret_key = _obtener_clave_jwt()
     ahora = datetime.now(timezone.utc)
-    expiracion = ahora + timedelta(seconds=JWT_EXPIRATION_SECONDS)
+    expiracion = ahora + timedelta(seconds=ttl)
 
     payload: dict[str, Any] = {
         "sub": str(id_usuario),
@@ -64,7 +75,7 @@ def generar_access_token(id_usuario: int, dni: str) -> tuple[str, int]:
     }
 
     token = jwt.encode(payload, secret_key, algorithm=JWT_ALGORITHM)
-    return token, JWT_EXPIRATION_SECONDS
+    return token, ttl
 
 
 def decodificar_y_validar_token(token: str) -> dict[str, Any]:

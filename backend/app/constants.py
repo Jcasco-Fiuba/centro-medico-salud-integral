@@ -22,6 +22,7 @@ API_PORT = int(os.getenv("API_PORT", "5000"))
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "").strip()
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_SECONDS = int(os.getenv("JWT_EXPIRATION_SECONDS", "3600"))
+JWT_REMEMBER_EXPIRATION_SECONDS = int(os.getenv("JWT_REMEMBER_EXPIRATION_SECONDS", "604800"))
 JWT_MIN_SECRET_LENGTH = 32
 
 # Roles del sistema según la tabla unificada `usuarios`.

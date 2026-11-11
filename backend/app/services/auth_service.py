@@ -13,7 +13,11 @@ import mysql.connector
 from mysql.connector import errorcode
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from app.constants import ROL_PACIENTE
+from app.constants import (
+    JWT_EXPIRATION_SECONDS,
+    JWT_REMEMBER_EXPIRATION_SECONDS,
+    ROL_PACIENTE,
+)
 from app.db import get_connection
 from app.repository import pacientes as pacientes_repository
 from app.services.jwt_service import (
@@ -225,7 +229,7 @@ def _migrar_hash_usuario(id_usuario: int, nuevo_hash: str) -> None:
         connection.close()
 
 
-def autenticar_usuario(email: str, password: str) -> dict[str, Any]:
+def autenticar_usuario(email: str, password: str, recordarme: bool = False) -> dict[str, Any]:
     """Autentica una cuenta activa por email y contraseña, y emite un JWT.
 
     Devuelve un error uniforme ante email inexistente, contraseña incorrecta,
@@ -267,7 +271,12 @@ def autenticar_usuario(email: str, password: str) -> dict[str, Any]:
     if requiere_rehash:
         _migrar_hash_usuario(id_usuario, generar_hash_canonico(password))
 
-    access_token, expires_in = generar_access_token(id_usuario=id_usuario, dni=dni)
+    ttl = JWT_REMEMBER_EXPIRATION_SECONDS if recordarme else JWT_EXPIRATION_SECONDS
+    access_token, expires_in = generar_access_token(
+        id_usuario=id_usuario,
+        dni=dni,
+        expiracion_segundos=ttl,
+    )
 
     return {
         "access_token": access_token,

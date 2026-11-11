@@ -13,7 +13,8 @@ def exigir_sesion_admin_recepcion():
     usuario = api_client.obtener_usuario_actual()
     if usuario is None:
         api_client.cerrar_sesion_autenticada()
-        return redirect(url_for("auth.iniciar_sesion"))
+        destino = api_client.construir_destino_actual(request, url_for("recepcion.checkin"))
+        return redirect(url_for("auth.iniciar_sesion", next=destino))
     if usuario.get("rol") != "admin":
         return ("No tiene permisos para acceder al módulo de recepción.", 403)
     return None

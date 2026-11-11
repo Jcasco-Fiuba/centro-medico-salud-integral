@@ -45,7 +45,16 @@ def exigir_sesion_paciente():
     """Exige una sesión autenticada válida antes de entrar a cualquier ruta de `/paciente`."""
     if not api_client.sesion_paciente_activa():
         api_client.cerrar_sesion_autenticada()
-        return redirect(url_for("auth.iniciar_sesion"))
+        if request.endpoint == "paciente.confirmar_reserva" and request.method == "POST":
+            params = {
+                clave: request.form.get(clave, "").strip()
+                for clave in ("especialidad", "medico", "fecha", "turno")
+                if request.form.get(clave, "").strip()
+            }
+            destino = url_for("paciente.confirmar_reserva", **params)
+        else:
+            destino = api_client.construir_destino_actual(request, url_for("paciente.portal"))
+        return redirect(url_for("auth.iniciar_sesion", next=destino))
 
     usuario = api_client.obtener_usuario_actual()
     if usuario is not None and usuario.get("rol") not in (None, "paciente", "admin"):

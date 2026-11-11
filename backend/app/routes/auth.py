@@ -31,7 +31,11 @@ def login():
         return jsonify({"error": error_validacion}), 400
 
     try:
-        resultado = autenticar_usuario(datos["email"], datos["password"])
+        resultado = autenticar_usuario(
+            datos["email"],
+            datos["password"],
+            recordarme=bool(datos.get("recordarme")),
+        )
     except CredencialesInvalidasError as exc:
         return jsonify({"error": str(exc)}), 401
     except JWTConfigError:

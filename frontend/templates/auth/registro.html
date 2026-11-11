@@ -38,57 +38,74 @@
               </header>
 
               <form class="login-form" action="{{ url_for('auth.procesar_registro') }}" method="post" data-register-form>
+                <input type="hidden" name="next" value="{{ next_url or '' }}">
+
                 {% if error %}
                   <div class="alert alert-danger mb-0" role="alert">
                     {{ error }}
                   </div>
                 {% endif %}
 
-                <div class="login-field-group">
-                  <div class="login-field">
+                <div class="login-field-group{% if field_errors and field_errors.get('nombre') %} login-field-group--invalid{% endif %}">
+                  <div class="login-field{% if field_errors and field_errors.get('nombre') %} login-field--invalid{% endif %}">
                     <label for="nombre" class="login-field__label">Nombre</label>
                     <input
                       type="text"
                       id="nombre"
                       name="nombre"
+                      value="{{ valores.nombre if valores else '' }}"
                       class="login-field__input"
                       placeholder="Ingresá tu nombre"
                       autocomplete="given-name"
                       aria-describedby="nombre-error"
+                      {% if field_errors and field_errors.get('nombre') %}aria-invalid="true"{% endif %}
                       required
                     >
                   </div>
-                  <p id="nombre-error" class="login-field__error mb-0" role="alert" hidden>
-                    ! Ingresá tu nombre.
+                  <p
+                    id="nombre-error"
+                    class="login-field__error mb-0"
+                    role="alert"
+                    {% if not (field_errors and field_errors.get('nombre')) %}hidden{% endif %}
+                  >
+                    {{ field_errors.get('nombre') if field_errors and field_errors.get('nombre') else '! Ingresá tu nombre.' }}
                   </p>
                 </div>
 
-                <div class="login-field-group">
-                  <div class="login-field">
+                <div class="login-field-group{% if field_errors and field_errors.get('apellido') %} login-field-group--invalid{% endif %}">
+                  <div class="login-field{% if field_errors and field_errors.get('apellido') %} login-field--invalid{% endif %}">
                     <label for="apellido" class="login-field__label">Apellido</label>
                     <input
                       type="text"
                       id="apellido"
                       name="apellido"
+                      value="{{ valores.apellido if valores else '' }}"
                       class="login-field__input"
                       placeholder="Ingresá tu apellido"
                       autocomplete="family-name"
                       aria-describedby="apellido-error"
+                      {% if field_errors and field_errors.get('apellido') %}aria-invalid="true"{% endif %}
                       required
                     >
                   </div>
-                  <p id="apellido-error" class="login-field__error mb-0" role="alert" hidden>
-                    ! Ingresá tu apellido.
+                  <p
+                    id="apellido-error"
+                    class="login-field__error mb-0"
+                    role="alert"
+                    {% if not (field_errors and field_errors.get('apellido')) %}hidden{% endif %}
+                  >
+                    {{ field_errors.get('apellido') if field_errors and field_errors.get('apellido') else '! Ingresá tu apellido.' }}
                   </p>
                 </div>
 
-                <div class="login-field-group">
-                  <div class="login-field">
+                <div class="login-field-group{% if field_errors and field_errors.get('dni') %} login-field-group--invalid{% endif %}">
+                  <div class="login-field{% if field_errors and field_errors.get('dni') %} login-field--invalid{% endif %}">
                     <label for="dni" class="login-field__label">DNI</label>
                     <input
                       type="text"
                       id="dni"
                       name="dni"
+                      value="{{ valores.dni if valores else '' }}"
                       class="login-field__input"
                       placeholder="Ingresá tu DNI"
                       inputmode="numeric"
@@ -97,35 +114,48 @@
                       maxlength="8"
                       autocomplete="off"
                       aria-describedby="dni-error"
+                      {% if field_errors and field_errors.get('dni') %}aria-invalid="true"{% endif %}
                       required
                     >
                   </div>
-                  <p id="dni-error" class="login-field__error mb-0" role="alert" hidden>
-                    ! Ingresá tu DNI.
+                  <p
+                    id="dni-error"
+                    class="login-field__error mb-0"
+                    role="alert"
+                    {% if not (field_errors and field_errors.get('dni')) %}hidden{% endif %}
+                  >
+                    {{ field_errors.get('dni') if field_errors and field_errors.get('dni') else '! Ingresá tu DNI.' }}
                   </p>
                 </div>
 
-                <div class="login-field-group">
-                  <div class="login-field">
+                <div class="login-field-group{% if field_errors and field_errors.get('email') %} login-field-group--invalid{% endif %}">
+                  <div class="login-field{% if field_errors and field_errors.get('email') %} login-field--invalid{% endif %}">
                     <label for="email" class="login-field__label">Correo electrónico</label>
                     <input
                       type="email"
                       id="email"
                       name="email"
+                      value="{{ valores.email if valores else '' }}"
                       class="login-field__input"
                       placeholder="nombre@dominio.com"
                       autocomplete="email"
                       aria-describedby="email-error"
+                      {% if field_errors and field_errors.get('email') %}aria-invalid="true"{% endif %}
                       required
                     >
                   </div>
-                  <p id="email-error" class="login-field__error mb-0" role="alert" hidden>
-                    ! Ingresá tu correo electrónico.
+                  <p
+                    id="email-error"
+                    class="login-field__error mb-0"
+                    role="alert"
+                    {% if not (field_errors and field_errors.get('email')) %}hidden{% endif %}
+                  >
+                    {{ field_errors.get('email') if field_errors and field_errors.get('email') else '! Ingresá tu correo electrónico.' }}
                   </p>
                 </div>
 
-                <div class="login-field-group">
-                  <div class="login-field">
+                <div class="login-field-group{% if field_errors and field_errors.get('password') %} login-field-group--invalid{% endif %}">
+                  <div class="login-field{% if field_errors and field_errors.get('password') %} login-field--invalid{% endif %}">
                     <label for="password" class="login-field__label">Contraseña</label>
                     <input
                       type="password"
@@ -136,19 +166,29 @@
                       autocomplete="new-password"
                       minlength="8"
                       aria-describedby="password-hint password-error"
+                      {% if field_errors and field_errors.get('password') %}aria-invalid="true"{% endif %}
                       required
                     >
                   </div>
-                  <p id="password-hint" class="login-field__hint mb-0">
+                  <p
+                    id="password-hint"
+                    class="login-field__hint mb-0"
+                    {% if field_errors and field_errors.get('password') %}hidden{% endif %}
+                  >
                     Usá un mínimo de 8 caracteres.
                   </p>
-                  <p id="password-error" class="login-field__error mb-0" role="alert" hidden>
-                    ! Ingresá tu contraseña.
+                  <p
+                    id="password-error"
+                    class="login-field__error mb-0"
+                    role="alert"
+                    {% if not (field_errors and field_errors.get('password')) %}hidden{% endif %}
+                  >
+                    {{ field_errors.get('password') if field_errors and field_errors.get('password') else '! Ingresá tu contraseña.' }}
                   </p>
                 </div>
 
-                <div class="login-field-group">
-                  <div class="login-field">
+                <div class="login-field-group{% if field_errors and field_errors.get('repetir_password') %} login-field-group--invalid{% endif %}">
+                  <div class="login-field{% if field_errors and field_errors.get('repetir_password') %} login-field--invalid{% endif %}">
                     <label for="repetir-password" class="login-field__label">Repetir contraseña</label>
                     <input
                       type="password"
@@ -159,30 +199,44 @@
                       autocomplete="new-password"
                       minlength="8"
                       aria-describedby="repetir-password-error"
+                      {% if field_errors and field_errors.get('repetir_password') %}aria-invalid="true"{% endif %}
                       required
                     >
                   </div>
-                  <p id="repetir-password-error" class="login-field__error mb-0" role="alert" hidden>
-                    ! Repetí tu contraseña.
+                  <p
+                    id="repetir-password-error"
+                    class="login-field__error mb-0"
+                    role="alert"
+                    {% if not (field_errors and field_errors.get('repetir_password')) %}hidden{% endif %}
+                  >
+                    {{ field_errors.get('repetir_password') if field_errors and field_errors.get('repetir_password') else '! Repetí tu contraseña.' }}
                   </p>
                 </div>
 
-                <div class="login-field-group login-terms-group">
-                  <div class="login-remember d-flex align-items-center">
+                <div class="login-field-group login-terms-group{% if field_errors and field_errors.get('terminos') %} login-field-group--invalid{% endif %}">
+                  <div class="login-remember{% if field_errors and field_errors.get('terminos') %} login-remember--invalid{% endif %} d-flex align-items-center">
                     <input
                       type="checkbox"
                       id="terminos"
                       name="terminos"
+                      value="1"
                       class="login-remember__input"
                       aria-describedby="terminos-error"
+                      {% if valores and valores.terminos %}checked{% endif %}
+                      {% if field_errors and field_errors.get('terminos') %}aria-invalid="true"{% endif %}
                       required
                     >
                     <label for="terminos" class="login-remember__label">
                       Acepto los términos y condiciones y la política de privacidad.
                     </label>
                   </div>
-                  <p id="terminos-error" class="login-field__error mb-0" role="alert" hidden>
-                    ! Para crear tu cuenta, aceptá los términos y la política de privacidad.
+                  <p
+                    id="terminos-error"
+                    class="login-field__error mb-0"
+                    role="alert"
+                    {% if not (field_errors and field_errors.get('terminos')) %}hidden{% endif %}
+                  >
+                    {{ field_errors.get('terminos') if field_errors and field_errors.get('terminos') else '! Para crear tu cuenta, aceptá los términos y la política de privacidad.' }}
                   </p>
                 </div>
 
@@ -191,7 +245,10 @@
                 </button>
 
                 <p class="login-register text-center mb-0">
-                  <a href="{{ url_for('auth.iniciar_sesion') }}" class="login-register__link">
+                  <a
+                    href="{{ url_for('auth.iniciar_sesion', next=next_url) if next_url else url_for('auth.iniciar_sesion') }}"
+                    class="login-register__link"
+                  >
                     ¿Ya tenés cuenta? Iniciar sesión
                   </a>
                 </p>
@@ -212,5 +269,6 @@
 {% endblock %}
 
 {% block page_scripts %}
+  <script src="{{ url_for('static', filename='js/pages/auth/auth_form.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/pages/auth/registro.js') }}" defer></script>
 {% endblock %}

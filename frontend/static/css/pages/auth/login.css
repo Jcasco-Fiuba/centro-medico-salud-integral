@@ -136,14 +136,37 @@ body {
 }
 
 .login-remember__input {
+  appearance: none;
+  display: inline-grid;
+  place-content: center;
   width: 1.125rem;
   height: 1.125rem;
   margin: 0;
   flex-shrink: 0;
-  accent-color: var(--color-primary);
+  background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 0.25rem;
   cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.login-remember__input::before {
+  content: "";
+  width: 0.65rem;
+  height: 0.4rem;
+  border-left: 2px solid var(--color-surface);
+  border-bottom: 2px solid var(--color-surface);
+  transform: translateY(-0.05rem) rotate(-45deg) scale(0);
+  transition: transform 0.12s ease-in-out;
+}
+
+.login-remember__input:checked {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.login-remember__input:checked::before {
+  transform: translateY(-0.05rem) rotate(-45deg) scale(1);
 }
 
 .login-remember__input:focus-visible {
@@ -154,8 +177,80 @@ body {
 .login-remember__label {
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
+  line-height: 1.4;
   cursor: pointer;
   user-select: none;
+}
+
+/* Avisos contextuales y validación inline */
+.login-notice {
+  background-color: var(--color-primary-soft);
+  border: 1px solid var(--color-border);
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+}
+
+.login-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.login-field__hint {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.login-field__error {
+  color: var(--color-danger);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.login-field--invalid,
+.login-field:has(.login-field__input[aria-invalid="true"]),
+.login-field:has(.login-field__input:user-invalid) {
+  border-color: var(--color-danger);
+}
+
+.login-field--invalid:focus-within,
+.login-field:has(.login-field__input[aria-invalid="true"]):focus-within,
+.login-field:has(.login-field__input:user-invalid):focus-within {
+  border-color: var(--color-danger);
+  outline-color: var(--color-danger);
+}
+
+.login-field-group--invalid .login-field__hint {
+  display: none;
+}
+
+.login-remember--invalid .login-remember__input,
+.login-remember__input[aria-invalid="true"],
+.login-remember__input:user-invalid {
+  border-color: var(--color-danger);
+}
+
+/* Estado deshabilitado / cargando del formulario */
+.login-field--disabled,
+.login-field:has(.login-field__input:disabled) {
+  background-color: #eaf0f2;
+  border-color: var(--color-border);
+}
+
+.login-field__input:disabled,
+.login-field__input:read-only {
+  color: var(--color-text-muted);
+}
+
+.login-form--loading {
+  cursor: progress;
+}
+
+.login-submit--loading,
+.login-submit:disabled {
+  opacity: 0.8;
+  cursor: wait;
 }
 
 /* Botón principal */

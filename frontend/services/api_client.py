@@ -3,6 +3,7 @@
 import os
 import time
 from typing import Any
+from urllib.parse import urlsplit
 
 from flask import has_request_context, session
 import requests
@@ -13,10 +14,36 @@ TIMEOUT = int(os.getenv("BACKEND_REQUEST_TIMEOUT", "10"))
 REQUEST_TIMEOUT = TIMEOUT
 
 
+def limpiar_destino_next(destino: Any) -> str:
+    """Valida que ``next`` sea una ruta interna segura y evita bucles hacia ``/auth/*``."""
+    if not isinstance(destino, str):
+        return ""
+    candidato = destino.strip()
+    if not candidato or not candidato.startswith("/") or candidato.startswith(("//", "/\\")):
+        return ""
+    partes = urlsplit(candidato)
+    if partes.scheme or partes.netloc or "\\" in partes.path:
+        return ""
+    if partes.path in ("/auth/login", "/auth/registro", "/auth/logout"):
+        return ""
+    return f"{partes.path}?{partes.query}" if partes.query else partes.path
+
+
+def construir_destino_actual(req: Any, fallback: str) -> str:
+    """Construye la ruta interna actual (incluyendo query string) para preservarla en ``next``."""
+    if getattr(req, "method", "GET") in ("GET", "HEAD"):
+        full_path = getattr(req, "full_path", "") or ""
+        limpio = limpiar_destino_next(full_path[:-1] if full_path.endswith("?") else full_path)
+        if limpio:
+            return limpio
+    return limpiar_destino_next(fallback) or fallback
+
+
 def guardar_sesion_autenticada(
     access_token: str,
     expires_in: int,
     usuario: dict[str, Any],
+    recordarme: bool = False,
 ) -> None:
     """Guarda en la sesión server-side los datos del usuario autenticado y su JWT.
 
@@ -53,6 +80,8 @@ def guardar_sesion_autenticada(
         "rol": usuario.get("rol"),
     }
     session["_expires_at"] = time.time() + ttl
+    session["_remember"] = bool(recordarme)
+    session.permanent = bool(recordarme)
 
 
 def cerrar_sesion_autenticada() -> None:
@@ -165,7 +194,7 @@ def patch(ruta: str, datos: dict[str, Any] | None = None) -> tuple[Any, int]:
     return enviar("PATCH", ruta, datos)
 
 
-def registrar_paciente_api(datos: dict[str, str]) -> tuple[dict[str, Any], int]:
+def registrar_paciente_api(datos: dict[str, Any]) -> tuple[dict[str, Any], int]:
     """Envía `POST /api/pacientes` al backend mediante `requests`."""
     payload = {
         "dni": datos.get("dni", ""),
@@ -173,6 +202,7 @@ def registrar_paciente_api(datos: dict[str, str]) -> tuple[dict[str, Any], int]:
         "apellido": datos.get("apellido", ""),
         "email": datos.get("email", ""),
         "password": datos.get("password", ""),
+        "acepta_terminos": bool(datos.get("acepta_terminos")),
     }
     try:
         response = requests.post(
@@ -187,12 +217,16 @@ def registrar_paciente_api(datos: dict[str, str]) -> tuple[dict[str, Any], int]:
         return {"error": "Respuesta inválida del servidor."}, 502
 
 
-def iniciar_sesion_api(email: str, password: str) -> tuple[dict[str, Any], int]:
+def iniciar_sesion_api(
+    email: str,
+    password: str,
+    recordarme: bool = False,
+) -> tuple[dict[str, Any], int]:
     """Envía `POST /api/auth/login` al backend mediante `requests`."""
     try:
         response = requests.post(
             f"{BACKEND_API_URL}/auth/login",
-            json={"email": email, "password": password},
+            json={"email": email, "password": password, "recordarme": bool(recordarme)},
             timeout=REQUEST_TIMEOUT,
         )
         return response.json(), response.status_code

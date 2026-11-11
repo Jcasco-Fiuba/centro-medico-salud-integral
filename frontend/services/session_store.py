@@ -233,17 +233,16 @@ class FileSystemSessionInterface(SessionInterface):
 
         signer = self._get_signer(app)
         signed_sid = signer.sign(sid.encode("utf-8")).decode("utf-8")
-        expires_dt = datetime.fromtimestamp(expires_at, tz=timezone.utc)
-        max_age = max(int(expires_at - ahora), 0)
+        es_persistente = bool(getattr(session, "permanent", False) or session.get("_remember"))
+        cookie_kwargs: dict[str, Any] = {
+            "path": path,
+            "domain": domain,
+            "secure": secure,
+            "httponly": httponly,
+            "samesite": samesite,
+        }
+        if es_persistente:
+            cookie_kwargs["max_age"] = max(int(expires_at - ahora), 0)
+            cookie_kwargs["expires"] = datetime.fromtimestamp(expires_at, tz=timezone.utc)
 
-        response.set_cookie(
-            cookie_name,
-            signed_sid,
-            max_age=max_age,
-            expires=expires_dt,
-            path=path,
-            domain=domain,
-            secure=secure,
-            httponly=httponly,
-            samesite=samesite,
-        )
+        response.set_cookie(cookie_name, signed_sid, **cookie_kwargs)

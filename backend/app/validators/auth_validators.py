@@ -6,8 +6,10 @@ from typing import Any
 EMAIL_REGEX = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 DNI_REGEX = re.compile(r"^\d{7,8}$")
 
-CAMPOS_PERMITIDOS_REGISTRO = frozenset({"dni", "nombre", "apellido", "email", "password"})
-CAMPOS_PERMITIDOS_LOGIN = frozenset({"email", "password"})
+CAMPOS_PERMITIDOS_REGISTRO = frozenset(
+    {"dni", "nombre", "apellido", "email", "password", "acepta_terminos"}
+)
+CAMPOS_PERMITIDOS_LOGIN = frozenset({"email", "password", "recordarme"})
 CAMPOS_PERMITIDOS_ACTUALIZACION_PACIENTE = frozenset({"nombre", "apellido", "email"})
 
 # Alineados con `backend/db/db.sql` (`VARCHAR(100)` para nombre y apellido,
@@ -43,12 +45,12 @@ def validar_email_formato(email_raw: Any) -> str:
 
 def validar_payload_registro_paciente(
     data: Any,
-) -> tuple[dict[str, str] | None, str | None]:
+) -> tuple[dict[str, Any] | None, str | None]:
     """Valida el cuerpo JSON para ``POST /api/pacientes``.
 
     Acepta únicamente los datos personales y credenciales definidos para el
     registro público de pacientes (``dni``, ``nombre``, ``apellido``, ``email``,
-    ``password``). Rechaza campos adicionales como ``rol`` o ``activo``.
+    ``password``, ``acepta_terminos``). Rechaza campos adicionales como ``rol`` o ``activo``.
     """
     if not isinstance(data, dict):
         return None, "El cuerpo de la solicitud debe ser un objeto JSON válido."
@@ -94,18 +96,23 @@ def validar_payload_registro_paciente(
     if len(password_raw) > MAX_PASSWORD_LEN:
         return None, f"La contraseña no puede superar {MAX_PASSWORD_LEN} caracteres."
 
+    acepta_terminos = data.get("acepta_terminos")
+    if acepta_terminos is not True:
+        return None, "Debés aceptar los términos y condiciones y la política de privacidad."
+
     return {
         "dni": dni,
         "nombre": nombre,
         "apellido": apellido,
         "email": email,
         "password": password_raw,
+        "acepta_terminos": True,
     }, None
 
 
 def validar_payload_login(
     data: Any,
-) -> tuple[dict[str, str] | None, str | None]:
+) -> tuple[dict[str, Any] | None, str | None]:
     """Valida el cuerpo JSON para ``POST /api/auth/login``."""
     if not isinstance(data, dict):
         return None, "El cuerpo de la solicitud debe ser un objeto JSON válido."
@@ -125,9 +132,14 @@ def validar_payload_login(
     if len(password_raw) > MAX_PASSWORD_LEN:
         return None, "Credenciales inválidas."
 
+    recordarme_raw = data.get("recordarme", False)
+    if not isinstance(recordarme_raw, bool):
+        return None, "El campo 'recordarme' debe ser booleano."
+
     return {
         "email": email,
         "password": password_raw,
+        "recordarme": recordarme_raw,
     }, None
 
 

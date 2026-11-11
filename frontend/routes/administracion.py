@@ -16,7 +16,8 @@ def exigir_sesion_admin_backoffice():
     usuario = api_client.obtener_usuario_actual()
     if usuario is None:
         api_client.cerrar_sesion_autenticada()
-        return redirect(url_for("auth.iniciar_sesion"))
+        destino = api_client.construir_destino_actual(request, url_for("administracion.inicio"))
+        return redirect(url_for("auth.iniciar_sesion", next=destino))
     if usuario.get("rol") != "admin":
         return ("No tiene permisos para acceder al módulo de administración.", 403)
     return None
