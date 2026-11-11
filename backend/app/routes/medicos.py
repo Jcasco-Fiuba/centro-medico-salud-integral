@@ -15,11 +15,17 @@ medicos_bp = Blueprint("medicos", __name__, url_prefix=BASE_URL)
 
 @medicos_bp.route("/medicos", methods=["GET"])
 def get_medicos():
-    """Devuelve el listado de médicos."""
+    """Devuelve el listado de médicos. Con ?especialidad=<id>, solo los activos de esa especialidad."""
+    
+    especialidad = request.args.get("especialidad")
+
+    id_especialidad = None
+    if especialidad is not None:
+        if not especialidad.isdigit():
+            return jsonify({"error": "La especialidad debe ser un número"}), 400
+        id_especialidad = int(especialidad)
     try:
-        medicos = medicos_service.listar_medicos()
-    except NotImplementedError as error:
-        return jsonify({"error": str(error)}), 501
+        medicos = medicos_service.listar_medicos(id_especialidad)
     except Exception:
         return jsonify({"error": "Error interno del servidor"}), 500
 
