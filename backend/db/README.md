@@ -79,6 +79,21 @@ quede con credenciales administrativas fijas o débiles por defecto.
     --nombre Admin \
     --apellido Sistema
   ```
+- **Para la base local de desarrollo `centro_medico`:** el script permite crear
+  explícitamente una cuenta nueva únicamente con el flag
+  `--confirmar-base-desarrollo-local`, y solo si `DB_HOST` es local,
+  `DB_PORT=3306` y `DB_NAME=centro_medico`. La contraseña sigue viniendo de
+  `ADMIN_TEST_PASSWORD`; no se acepta como argumento. El script nunca cambia el
+  rol ni la contraseña de una cuenta existente:
+  ```bash
+  cd /home/Jorge/worktrees/integracion-full-stack/backend
+  read -r -s -p "Contraseña admin local: " ADMIN_TEST_PASSWORD
+  export ADMIN_TEST_PASSWORD
+  echo
+  /home/Jorge/centro-medico-salud-integral/backend/.venv/bin/python \
+    db/crear_admin_prueba.py --confirmar-base-desarrollo-local
+  unset ADMIN_TEST_PASSWORD
+  ```
 - **En una instalación real:** el administrador inicial debe aprovisionarse con
   datos reales y una contraseña robusta generada específicamente para ese
   entorno, nunca reutilizando contraseñas de prueba.

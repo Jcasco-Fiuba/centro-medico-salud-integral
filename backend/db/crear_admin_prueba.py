@@ -1,4 +1,4 @@
-"""Script para crear una cuenta administrativa nueva en una base MySQL de prueba.
+"""Script para crear una cuenta administrativa nueva en MySQL local de desarrollo o prueba.
 
 Medidas de seguridad:
 1. Solo inserta cuentas nuevas (`INSERT`). Nunca modifica cuentas existentes ni
@@ -7,10 +7,10 @@ Medidas de seguridad:
 2. No acepta la contrasena como argumento de linea de comandos para no exponerla
    en el historial de shell ni en la lista de procesos: la lee exclusivamente de
    la variable de entorno ``ADMIN_TEST_PASSWORD``.
-3. Barrera contra ejecucion en la base habitual: exige ``--confirmar-base-prueba``
-   y rechaza conectarse a ``centro_medico`` en el puerto estandar ``3306`` (exige
-   un schema con sufijo ``_test``/``_prueba`` o un puerto de instancia temporal
-   distinto de ``3306`` en ``127.0.0.1``/``localhost``).
+3. Por defecto solo permite bases de prueba. Para usar deliberadamente la base
+   local de desarrollo ``centro_medico`` en ``127.0.0.1:3306`` exige el flag
+   adicional ``--confirmar-base-desarrollo-local`` y valida exactamente host,
+   puerto y schema. Nunca acepta un host remoto con ese flag.
 
 Uso recomendado sobre una instancia MySQL temporal aislada (ej. puerto 3307):
 
@@ -60,7 +60,7 @@ class UsuarioExistenteError(ValueError):
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Crea un usuario nuevo con rol='admin' en una base MySQL de prueba "
+            "Crea un usuario nuevo con rol='admin' en una base MySQL local de prueba o desarrollo "
             "usando el hasher canonico del proyecto (pbkdf2:sha256:600000). "
             "Lee la contrasena desde la variable de entorno ADMIN_TEST_PASSWORD."
         )
@@ -71,6 +71,14 @@ def _parse_args() -> argparse.Namespace:
         help=(
             "Confirma explicitamente que la base configurada en DB_HOST/DB_PORT/DB_NAME "
             "es un entorno de prueba aislado."
+        ),
+    )
+    parser.add_argument(
+        "--confirmar-base-desarrollo-local",
+        action="store_true",
+        help=(
+            "Permite explícitamente insertar una cuenta nueva en la base local "
+            "centro_medico de 127.0.0.1:3306. No modifica cuentas existentes."
         ),
     )
     parser.add_argument(
@@ -102,14 +110,40 @@ def verificar_barrera_base_prueba(
     db_host: str,
     db_port: str,
     db_name: str,
+    confirmar_base_desarrollo_local: bool = False,
 ) -> None:
-    """Verifica que el script no apunte por accidente a la base habitual del usuario."""
+    """Exige confirmación y restringe estrictamente los destinos permitidos."""
+    host_limpio = db_host.strip().lower()
+    nombre_limpio = db_name.strip().lower()
+
+    if confirmar_base_desarrollo_local:
+        if not confirmado:
+            raise ErrorSeguridadBasePrueba(
+                "Barrera de seguridad: confirma el uso de la base local con "
+                "--confirmar-base-desarrollo-local."
+            )
+        if host_limpio not in HOSTS_LOCALES_PERMITIDOS:
+            raise ErrorSeguridadBasePrueba(
+                "Barrera de seguridad: la base de desarrollo solo se permite en un host local."
+            )
+        try:
+            puerto = int(db_port)
+        except ValueError as exc:
+            raise ErrorSeguridadBasePrueba(
+                f"Barrera de seguridad: DB_PORT='{db_port}' no es un entero valido."
+            ) from exc
+        if puerto != 3306 or nombre_limpio != "centro_medico":
+            raise ErrorSeguridadBasePrueba(
+                "Barrera de seguridad: --confirmar-base-desarrollo-local solo permite "
+                "127.0.0.1/localhost:3306/centro_medico."
+            )
+        return
+
     if not confirmado:
         raise ErrorSeguridadBasePrueba(
             "Barrera de seguridad: debes pasar --confirmar-base-prueba para ejecutar este script."
         )
 
-    host_limpio = db_host.strip().lower()
     if host_limpio not in HOSTS_LOCALES_PERMITIDOS:
         raise ErrorSeguridadBasePrueba(
             f"Barrera de seguridad: DB_HOST='{db_host}' no es un host local permitido "
@@ -123,7 +157,6 @@ def verificar_barrera_base_prueba(
             f"Barrera de seguridad: DB_PORT='{db_port}' no es un entero valido."
         ) from exc
 
-    nombre_limpio = db_name.strip().lower()
     es_schema_prueba = nombre_limpio.endswith(SUFIJOS_DB_PRUEBA)
     es_instancia_temporal = puerto != 3306
 
@@ -232,11 +265,17 @@ def main() -> int:
     db_name = os.getenv("DB_NAME", "centro_medico")
 
     try:
+        if args.confirmar_base_prueba and args.confirmar_base_desarrollo_local:
+            raise ErrorSeguridadBasePrueba(
+                "Usa solo uno de estos flags: --confirmar-base-prueba o "
+                "--confirmar-base-desarrollo-local."
+            )
         verificar_barrera_base_prueba(
-            confirmado=bool(args.confirmar_base_prueba),
+            confirmado=bool(args.confirmar_base_prueba or args.confirmar_base_desarrollo_local),
             db_host=db_host,
             db_port=db_port,
             db_name=db_name,
+            confirmar_base_desarrollo_local=bool(args.confirmar_base_desarrollo_local),
         )
     except ErrorSeguridadBasePrueba as exc:
         print(str(exc), file=sys.stderr)
