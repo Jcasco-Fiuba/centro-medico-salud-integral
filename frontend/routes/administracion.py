@@ -367,13 +367,75 @@ def dar_baja_medico(id):
         pass
 
     return redirect(url_for("administracion.medicos", error_baja="1"))
-    
+
 
 # --- CONSULTORIOS ---
 
 @administracion_bp.route("/consultorios", methods=["GET"])
 def consultorios():
-    return redirect(url_for("administracion.medicos"))
+    """Listado principal de consultorios."""
+    try:
+        res = api_client.get("/api/consultorios")
+        consultorios_list = res.json().get("consultorios", []) if res.status_code == 200 else []
+    except Exception:
+        consultorios_list = []
+        
+    error = request.args.get("error")
+    return render_template("administracion/consultorios.html", consultorios=consultorios_list, error=error)
+
+
+@administracion_bp.route("/consultorios/nuevo", methods=["GET", "POST"])
+def nuevo_consultorio():
+    """Alta de consultorio."""
+    if request.method == "POST":
+        datos = {
+            "nombre": request.form.get("nombre"),
+            "ubicacion": request.form.get("ubicacion")
+        }
+        
+        res = api_client.post("/api/consultorios", json=datos)
+        if res.status_code in (200, 201):
+            return redirect(url_for("administracion.consultorios"))
+            
+        body = res.json()
+        error_msg = body.get("errores", [body.get("error", "Error al crear el consultorio")])[0]
+        return render_template("administracion/formulario_consultorio.html", editando=False, error=error_msg, consultorio=datos)
+
+    return render_template("administracion/formulario_consultorio.html", editando=False, consultorio=None)
+
+
+@administracion_bp.route("/consultorios/<int:id>/editar", methods=["GET", "POST"])
+def editar_consultorio(id):
+    """Edición de consultorio (Usa PATCH hacia el Backend)."""
+    if request.method == "POST":
+        datos = {
+            "nombre": request.form.get("nombre"),
+            "ubicacion": request.form.get("ubicacion")
+        }
+        
+        res = api_client.patch(f"/api/consultorios/{id}", json=datos)
+        if res.status_code == 200:
+            return redirect(url_for("administracion.consultorios"))
+            
+        body = res.json()
+        error_msg = body.get("errores", [body.get("error", "Error al actualizar")])[0]
+        return render_template("administracion/formulario_consultorio.html", editando=True, consultorio=datos, error=error_msg)
+
+    res = api_client.get(f"/api/consultorios/{id}")
+    consultorio_data = res.json().get("consultorio") if res.status_code == 200 else None
+
+    return render_template("administracion/formulario_consultorio.html", editando=True, consultorio=consultorio_data)
+
+
+@administracion_bp.route("/consultorios/<int:id>/baja", methods=["POST"])
+def dar_baja_consultorio(id):
+    """Baja lógica de consultorio."""
+    res = api_client.patch(f"/api/consultorios/{id}/baja")
+    if res.status_code == 200:
+        return redirect(url_for("administracion.consultorios"))
+        
+    error_msg = res.json().get("error", "No se pudo dar de baja el consultorio.")
+    return redirect(url_for("administracion.consultorios", error=error_msg))
 
 @administracion_bp.route("/agendas")
 def agendas():

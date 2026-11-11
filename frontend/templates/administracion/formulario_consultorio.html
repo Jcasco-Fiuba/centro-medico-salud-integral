@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if editando %}Editar consultorio{% else %}Alta de consultorio{% endif %} | Administración
+{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/administracion/medicos.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/administracion/consultorios.css') }}">
+{% endblock %}
+
+{% block body %}
+
+<div class="dashboard-layout">
+
+    <!-- BARRA LATERAL -->
+    <aside class="sidebar">
+
+        <div class="sidebar-logo">
+            <div class="logo-icono">
+                <span>+</span>
+            </div>
+            <div class="logo-texto">
+                <h2>Centro Médico</h2>
+                <p>Salud Integral</p>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <p class="sidebar-titulo">Gestión interna</p>
+
+            <a href="{{ url_for('administracion.dashboard') }}" class="nav-link">Dashboard</a>
+            <a href="{{ url_for('administracion.especialidades') }}" class="nav-link">Especialidades</a>
+            <a href="{{ url_for('administracion.medicos') }}" class="nav-link">Médicos</a>
+            <a href="{{ url_for('administracion.consultorios') }}" class="nav-link activo">Consultorios</a>
+            <a href="{{ url_for('administracion.agendas') }}" class="nav-link">Agendas y horarios</a>
+        </nav>
+
+        <div class="sidebar-info">
+            <h3>Administrador · Gestiones del centro</h3>
+            <p>Atención presencial · 8 a 20 h</p>
+        </div>
+
+    </aside>
+
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="dashboard-main">
+
+        <!-- BARRA SUPERIOR -->
+        <header class="topbar">
+
+            <p>Administración / Gestión del centro</p>
+
+            <div class="topbar-usuario">
+                <span>Mariana López · Administradora ⌵</span>
+            </div>
+
+        </header>
+
+
+        <!-- CONTENIDO DE FORMULARIO -->
+        <div class="dashboard-content">
+
+            <!-- ENCABEZADO -->
+            <section class="dashboard-header">
+
+                <p class="breadcrumb">ADMINISTRACIÓN · CONSULTORIOS</p>
+
+                {% if editando %}
+                    <h1>Editar consultorio</h1>
+                    <p>Modificá los datos del consultorio seleccionado.</p>
+                {% else %}
+                    <h1>Alta de consultorio</h1>
+                    <p>Completá los datos para crear un nuevo consultorio.</p>
+                {% endif %}
+
+            </section>
+
+            {% if error %}
+            <div class="alert-error-banner">
+                {{ error }}
+            </div>
+            {% endif %}
+
+
+            <!-- TARJETA DEL FORMULARIO -->
+            <section class="panel-tabla form-container">
+
+                <h2 class="form-titulo">Datos del consultorio</h2>
+
+                <form method="POST">
+
+                    <div class="form-campo">
+                        <label for="nombre">Nombre de consultorio *</label>
+                        <input type="text" id="nombre" name="nombre" class="form-control" placeholder="Ej: Consultorio 3" value="{{ consultorio.nombre if consultorio else '' }}" required maxlength="50">
+                    </div>
+
+                    <div class="form-campo">
+                        <label for="ubicacion">Ubicación / Detalles *</label>
+                        <input type="text" id="ubicacion" name="ubicacion" class="form-control" placeholder="Ej: Planta Baja - Sector A" value="{{ consultorio.ubicacion if consultorio else '' }}" required maxlength="50">
+                    </div>
+
+                    <div class="form-acciones">
+                        <button type="submit" class="boton-alta boton-submit">
+                            {% if editando %}Guardar cambios{% else %}Crear consultorio{% endif %}
+                        </button>
+
+                        <a href="{{ url_for('administracion.consultorios') }}" class="boton-cancelar">
+                            Cancelar
+                        </a>
+                    </div>
+
+                </form>
+
+            </section>
+
+
+            <!-- AVISO INFORMATIVO INFERIOR -->
+            <aside class="panel-aviso-baja form-aviso">
+
+                <span class="aviso-icono">!</span>
+
+                <div class="aviso-texto">
+                    <h3>Registro de consultorios</h3>
+                    <p>El alta de un consultorio lo habilita para figurar en la asignación de agendas de atención. Toda baja posterior conserva las atenciones e historias asignadas.</p>
+                </div>
+
+            </aside>
+
+        </div>
+
+    </main>
+
+</div>
+
+{% endblock %}
