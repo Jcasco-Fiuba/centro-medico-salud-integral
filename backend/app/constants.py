@@ -17,3 +17,14 @@ DB_CONNECT_TIMEOUT = int(os.getenv("DB_CONNECT_TIMEOUT", "10"))
 
 # Ajustes para ejecutar Flask en desarrollo local.
 API_PORT = int(os.getenv("API_PORT", "5000"))
+
+# Configuración de JWT; JWT_SECRET_KEY debe definirse en el entorno (sin secreto hardcodeado).
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "").strip()
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRATION_SECONDS = int(os.getenv("JWT_EXPIRATION_SECONDS", "3600"))
+JWT_MIN_SECRET_LENGTH = 32
+
+# Roles del sistema según la tabla unificada `usuarios`.
+ROL_PACIENTE = "paciente"
+ROL_ADMIN = "admin"
+ROLES_VALIDOS = (ROL_PACIENTE, ROL_ADMIN)
