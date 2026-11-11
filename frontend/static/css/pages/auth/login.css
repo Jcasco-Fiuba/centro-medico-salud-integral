@@ -1,0 +1,238 @@
+/* Estilos específicos para la pantalla inicial de inicio de sesión */
+
+body {
+  background-color: var(--color-page);
+  color: var(--color-text);
+  font-family: var(--font-family-base);
+}
+
+.login-layout {
+  background-color: var(--color-page);
+}
+
+.login-shell {
+  max-width: 80rem;
+  padding-inline: var(--space-8);
+}
+
+/* Encabezado institucional */
+.login-header {
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding-block: 1.125rem;
+}
+
+.login-brand {
+  gap: var(--space-3);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.login-brand__icon {
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+}
+
+.login-brand__name {
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+/* Contenedor principal y tarjeta de inicio de sesión */
+.login-main {
+  background-color: var(--color-page);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 29rem;
+  padding: var(--space-8);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.login-card__header {
+  margin-bottom: var(--space-6);
+}
+
+.login-card__title {
+  margin: 0 0 var(--space-1);
+  color: var(--color-text);
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.login-card__subtitle {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.45;
+}
+
+/* Formulario y campos */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.625rem var(--space-4);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.login-field:focus-within {
+  border-color: var(--color-focus);
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.login-field__label {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.3;
+  cursor: pointer;
+}
+
+.login-field__input {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+}
+
+.login-field__input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
+.login-field__input:focus,
+.login-field__input:focus-visible {
+  outline: none;
+}
+
+/* Casilla Recordarme */
+.login-remember {
+  gap: var(--space-2);
+  margin-block: var(--space-1);
+}
+
+.login-remember__input {
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: var(--color-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+
+.login-remember__input:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.login-remember__label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Botón principal */
+.login-submit {
+  min-height: 2.75rem;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.login-submit:hover,
+.login-submit:focus-visible {
+  background-color: var(--color-primary-hover);
+  color: var(--color-surface);
+}
+
+.login-submit:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Enlace de registro */
+.login-register {
+  margin-top: var(--space-1);
+}
+
+.login-register__link {
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.login-register__link:hover,
+.login-register__link:focus-visible {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
+
+/* Pie institucional */
+.login-footer {
+  background-color: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  padding-block: var(--space-4);
+}
+
+.login-footer__line {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+/* Adaptación para tablet y móvil */
+@media (max-width: 48rem) {
+  .login-shell {
+    padding-inline: var(--space-6);
+  }
+}
+
+@media (max-width: 36rem) {
+  .login-shell {
+    padding-inline: var(--space-4);
+  }
+
+  .login-header {
+    padding-block: var(--space-3);
+  }
+
+  .login-brand__name {
+    max-width: 11rem;
+  }
+
+  .login-card {
+    padding: var(--space-6) var(--space-4);
+  }
+}

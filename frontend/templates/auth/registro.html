@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}Crear cuenta | Centro Médico Salud Integral{% endblock %}
+
+{% block page_css %}
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+    crossorigin="anonymous"
+  >
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/auth/registro.css') }}">
+{% endblock %}
+
+{% block body %}
+  <div class="login-layout d-flex flex-column min-vh-100">
+    <header class="login-header">
+      <div class="container-fluid login-shell d-flex align-items-center">
+        <a href="{{ url_for('public.inicio') }}" class="login-brand d-inline-flex align-items-center">
+          <span class="login-brand__icon d-inline-flex align-items-center justify-content-center" aria-hidden="true">
+            <img src="{{ url_for('static', filename='img/logo-centro-medico.svg') }}" alt="" width="18" height="18">
+          </span>
+          <span class="login-brand__name">Centro Médico Salud Integral</span>
+        </a>
+      </div>
+    </header>
+
+    <main class="login-main flex-grow-1 d-flex align-items-center py-4 py-md-5">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-12 col-sm-10 col-md-8 col-lg-5">
+            <section class="login-card mx-auto" aria-labelledby="register-title">
+              <header class="login-card__header">
+                <h1 id="register-title" class="login-card__title">Creá tu cuenta</h1>
+                <p class="login-card__subtitle mb-0">
+                  Completá tus datos para gestionar tus turnos.
+                </p>
+              </header>
+
+              <form class="login-form" action="{{ url_for('auth.procesar_registro') }}" method="post" data-register-form>
+                {% if error %}
+                  <div class="alert alert-danger mb-0" role="alert">
+                    {{ error }}
+                  </div>
+                {% endif %}
+
+                <div class="login-field-group">
+                  <div class="login-field">
+                    <label for="nombre" class="login-field__label">Nombre</label>
+                    <input
+                      type="text"
+                      id="nombre"
+                      name="nombre"
+                      class="login-field__input"
+                      placeholder="Ingresá tu nombre"
+                      autocomplete="given-name"
+                      aria-describedby="nombre-error"
+                      required
+                    >
+                  </div>
+                  <p id="nombre-error" class="login-field__error mb-0" role="alert" hidden>
+                    ! Ingresá tu nombre.
+                  </p>
+                </div>
+
+                <div class="login-field-group">
+                  <div class="login-field">
+                    <label for="apellido" class="login-field__label">Apellido</label>
+                    <input
+                      type="text"
+                      id="apellido"
+                      name="apellido"
+                      class="login-field__input"
+                      placeholder="Ingresá tu apellido"
+                      autocomplete="family-name"
+                      aria-describedby="apellido-error"
+                      required
+                    >
+                  </div>
+                  <p id="apellido-error" class="login-field__error mb-0" role="alert" hidden>
+                    ! Ingresá tu apellido.
+                  </p>
+                </div>
+
+                <div class="login-field-group">
+                  <div class="login-field">
+                    <label for="dni" class="login-field__label">DNI</label>
+                    <input
+                      type="text"
+                      id="dni"
+                      name="dni"
+                      class="login-field__input"
+                      placeholder="Ingresá tu DNI"
+                      inputmode="numeric"
+                      pattern="[0-9]{7,8}"
+                      minlength="7"
+                      maxlength="8"
+                      autocomplete="off"
+                      aria-describedby="dni-error"
+                      required
+                    >
+                  </div>
+                  <p id="dni-error" class="login-field__error mb-0" role="alert" hidden>
+                    ! Ingresá tu DNI.
+                  </p>
+                </div>
+
+                <div class="login-field-group">
+                  <div class="login-field">
+                    <label for="email" class="login-field__label">Correo electrónico</label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      class="login-field__input"
+                      placeholder="nombre@dominio.com"
+                      autocomplete="email"
+                      aria-describedby="email-error"
+                      required
+                    >
+                  </div>
+                  <p id="email-error" class="login-field__error mb-0" role="alert" hidden>
+                    ! Ingresá tu correo electrónico.
+                  </p>
+                </div>
+
+                <div class="login-field-group">
+                  <div class="login-field">
+                    <label for="password" class="login-field__label">Contraseña</label>
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      class="login-field__input"
+                      placeholder="Ingresá tu contraseña"
+                      autocomplete="new-password"
+                      minlength="8"
+                      aria-describedby="password-hint password-error"
+                      required
+                    >
+                  </div>
+                  <p id="password-hint" class="login-field__hint mb-0">
+                    Usá un mínimo de 8 caracteres.
+                  </p>
+                  <p id="password-error" class="login-field__error mb-0" role="alert" hidden>
+                    ! Ingresá tu contraseña.
+                  </p>
+                </div>
+
+                <div class="login-field-group">
+                  <div class="login-field">
+                    <label for="repetir-password" class="login-field__label">Repetir contraseña</label>
+                    <input
+                      type="password"
+                      id="repetir-password"
+                      name="repetir_password"
+                      class="login-field__input"
+                      placeholder="Volvé a ingresar tu contraseña"
+                      autocomplete="new-password"
+                      minlength="8"
+                      aria-describedby="repetir-password-error"
+                      required
+                    >
+                  </div>
+                  <p id="repetir-password-error" class="login-field__error mb-0" role="alert" hidden>
+                    ! Repetí tu contraseña.
+                  </p>
+                </div>
+
+                <div class="login-field-group login-terms-group">
+                  <div class="login-remember d-flex align-items-center">
+                    <input
+                      type="checkbox"
+                      id="terminos"
+                      name="terminos"
+                      class="login-remember__input"
+                      aria-describedby="terminos-error"
+                      required
+                    >
+                    <label for="terminos" class="login-remember__label">
+                      Acepto los términos y condiciones y la política de privacidad.
+                    </label>
+                  </div>
+                  <p id="terminos-error" class="login-field__error mb-0" role="alert" hidden>
+                    ! Para crear tu cuenta, aceptá los términos y la política de privacidad.
+                  </p>
+                </div>
+
+                <button type="submit" class="button login-submit w-100">
+                  Crear cuenta
+                </button>
+
+                <p class="login-register text-center mb-0">
+                  <a href="{{ url_for('auth.iniciar_sesion') }}" class="login-register__link">
+                    ¿Ya tenés cuenta? Iniciar sesión
+                  </a>
+                </p>
+              </form>
+            </section>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="login-footer">
+      <div class="container-fluid login-shell">
+        <p class="login-footer__line mb-1">Atención presencial · Una única sede</p>
+        <p class="login-footer__line mb-0">Datos de contacto: pendientes de definir.</p>
+      </div>
+    </footer>
+  </div>
+{% endblock %}
+
+{% block page_scripts %}
+  <script src="{{ url_for('static', filename='js/pages/auth/registro.js') }}" defer></script>
+{% endblock %}
