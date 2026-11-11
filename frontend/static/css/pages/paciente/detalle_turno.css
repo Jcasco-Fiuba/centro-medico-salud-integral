@@ -92,3 +92,8 @@
     width: 100%;
   }
 }
+
+/* El código de ingreso es largo: que se corte en varias líneas */
+.token {
+  word-break: break-all;
+}
