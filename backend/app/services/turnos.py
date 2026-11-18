@@ -143,6 +143,8 @@ def reservar_turno(datos: dict, usuario_id: int):
     fecha_hora = _parsear_fecha_hora(turno["fecha_hora"])
     if fecha_hora <= datetime.now():
         return None, "No se puede reservar un turno que ya paso"
+    if repo_turno.verificar_turno_activo(usuario_id, turno["id_medico"]):
+        return None, "Ya tenés un turno activo con este médico"
 
     token = secrets.token_urlsafe(32)
     turno_reservado = repo_turno.actualizar_reserva_turno(turno_id, usuario_id, token)
