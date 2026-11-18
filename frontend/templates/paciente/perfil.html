@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Mi perfil | Centro Médico Salud Integral{% endblock %}
+
+{% block page_css %}
+  {# portal.css: navbar, pie y textos. avisos.css: mensajes. perfil.css: formulario #}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/portal.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/avisos.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/paciente/perfil.css') }}">
+{% endblock %}
+
+{% block body %}
+  {% include "components/nav_paciente.html" %}
+
+  <main class="container contenido">
+    <p class="antetitulo">Mi cuenta</p>
+    <h1>Mi perfil</h1>
+    <p class="subtitulo">Revisá y actualizá tus datos personales.</p>
+
+    {% if error %}
+      <p class="alert alert--error">{{ error }}</p>
+    {% endif %}
+
+    {% if mensaje %}
+      <p class="alert alert--success">{{ mensaje }}</p>
+    {% endif %}
+
+    <div class="card perfil">
+      <div class="perfil-cabecera">
+        <span class="perfil-avatar">{{ paciente.iniciales }}</span>
+        <div>
+          <h2>{{ paciente.nombre }} {{ paciente.apellido }}</h2>
+          <p class="texto-gris">DNI {{ paciente.dni }}</p>
+        </div>
+      </div>
+
+      <form method="POST" action="{{ url_for('paciente.mi_perfil') }}" class="perfil-form">
+        <div class="form-field">
+          <label class="form-field__label" for="nombre">Nombre</label>
+          <input class="form-control" id="nombre" name="nombre" type="text"
+                 value="{{ paciente.nombre }}" maxlength="100" required>
+        </div>
+
+        <div class="form-field">
+          <label class="form-field__label" for="apellido">Apellido</label>
+          <input class="form-control" id="apellido" name="apellido" type="text"
+                 value="{{ paciente.apellido }}" maxlength="100" required>
+        </div>
+
+        <div class="form-field">
+          <label class="form-field__label" for="email">Email</label>
+          <input class="form-control" id="email" name="email" type="email"
+                 value="{{ paciente.email }}" maxlength="150" required>
+        </div>
+
+        <div class="form-field">
+          <label class="form-field__label" for="dni">DNI</label>
+          <input class="form-control" id="dni" type="text" value="{{ paciente.dni }}" disabled>
+          <p class="form-field__help">El DNI no se puede modificar. Si hay un error, comunicate con recepción.</p>
+        </div>
+
+        <div class="perfil-botones">
+          <a class="button button--secondary" href="{{ url_for('paciente.portal') }}">Volver al inicio</a>
+          <button class="button" type="submit">Guardar cambios</button>
+        </div>
+      </form>
+    </div>
+  </main>
+{% endblock %}
