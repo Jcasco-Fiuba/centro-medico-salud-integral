@@ -57,7 +57,7 @@ def get_turno(id: int):
         return jsonify({"error": "Turno no encontrado"}), 404
 
     usuario = g.usuario_actual
-    if usuario["rol"] == ROL_PACIENTE and turno.get("id_usuario") != usuario["id"]:
+    if usuario["rol"] == ROL_PACIENTE and turno.get("estado") != "disponible" and turno.get("id_usuario") != usuario["id"]:
         return jsonify({"error": "No tiene permisos para consultar este turno."}), 403
 
     return jsonify(turno), 200
