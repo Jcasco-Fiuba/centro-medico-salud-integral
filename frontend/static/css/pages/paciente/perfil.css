@@ -1,0 +1,58 @@
+/* pantalla para Mi perfil.
+   Navbar, pie y textos: portal.css. Mensajes de éxito y error: avisos.css. */
+
+.perfil {
+  max-width: 640px;
+}
+
+/* iniciales y nombre arriba del formulario */
+.perfil-cabecera {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.perfil-cabecera h2 {
+  margin: 0;
+}
+
+.perfil-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: 700;
+  line-height: 56px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.perfil-form .form-field {
+  margin-bottom: var(--space-4);
+}
+
+/* se muestra el Dni*/
+.perfil-form .form-control:disabled {
+  background: var(--color-primary-soft);
+  color: var(--color-text-muted);
+}
+
+.perfil-botones {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+@media (max-width: 700px) {
+  .perfil-botones {
+    flex-direction: column-reverse;
+  }
+
+  .perfil-botones .button {
+    width: 100%;
+    text-align: center;
+  }
+}
