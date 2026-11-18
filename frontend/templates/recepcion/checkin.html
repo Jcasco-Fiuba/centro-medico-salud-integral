@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Check-in | Centro Médico Salud Integral{% endblock %}
+
+{% block page_css %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/recepcion/recepcion.css') }}">
+{% endblock %}
+
+{% block body %}
+  {% include "recepcion/_menu.html" %}
+
+  <main class="container recepcion-main">
+    <section class="card recepcion-card" aria-labelledby="checkin-titulo">
+      <h1 id="checkin-titulo" class="recepcion-titulo">Registrar llegada</h1>
+      <p class="recepcion-subtitulo">
+        Escaneá el código QR del paciente o ingresá el código a mano.
+        El check-in se acepta desde 15 minutos antes hasta 15 minutos después del turno.
+      </p>
+
+      {% if mensaje %}
+        <div class="alert alert--{{ tipo_mensaje }}" role="status">{{ mensaje }}</div>
+      {% endif %}
+
+      {% if turno %}
+        <dl class="recepcion-detalle">
+          <div>
+            <dt>Turno</dt>
+            <dd>#{{ turno.id }}</dd>
+          </div>
+          <div>
+            <dt>Horario</dt>
+            <dd>{{ turno.hora_turno }}</dd>
+          </div>
+          <div>
+            <dt>Llegada</dt>
+            <dd>{{ turno.hora_checkin }}</dd>
+          </div>
+          <div>
+            <dt>Estado</dt>
+            <dd><span class="estado estado--{{ turno.estado }}">{{ turno.estado | capitalize }}</span></dd>
+          </div>
+        </dl>
+      {% endif %}
+
+      <form class="recepcion-form" action="{{ url_for('recepcion.registrar_checkin') }}" method="post">
+        <div class="form-field">
+          <label for="token" class="form-field__label">Código del turno</label>
+          <input
+            type="text"
+            id="token"
+            name="token"
+            class="form-control"
+            value="{{ token or '' }}"
+            autocomplete="off"
+            autofocus
+            required
+          >
+          <span class="form-field__help">Con un lector de QR, el código se completa solo.</span>
+        </div>
+
+        <button type="submit" class="button">Registrar llegada</button>
+      </form>
+    </section>
+  </main>
+{% endblock %}

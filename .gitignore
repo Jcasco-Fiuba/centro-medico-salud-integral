@@ -5,4 +5,4 @@ venv/
 .env
 .env.*
 !.env.example
-
+.flask_session/

@@ -1,0 +1,44 @@
+/* Style del paso 2 del flujo de reserva (elegir profesional).
+   Navbar y pie: portal.css. Pasos, columnas, buscador, opciones y resumen: especialidad.css. */
+
+/* Paso ya completado (el 1) */
+.paso.hecho {
+  color: var(--color-primary);
+}
+
+.paso.hecho .numero {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+/* Cada médico ocupa todo el ancho */
+.profesional {
+  width: 100%;
+  margin-bottom: var(--space-4);
+}
+
+.avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: 700;
+  line-height: 52px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* dato de color(literalmente): Cuando el médico está elegido, el fondo ya es celeste: el avatar pasa a blanco */
+.opcion:has(input:checked) .avatar {
+  background: white;
+}
+
+.profesional-nombre,
+.profesional-dato {
+  flex: 1;
+}
+
+  }
+}

@@ -116,3 +116,77 @@
     padding: var(--space-4);
   }
 }
+
+/* Navegación compartida y cierre de sesión por rol */
+.nav-logout-form {
+  display: inline-flex;
+  margin: 0;
+}
+
+.nav-logout-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.35rem;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.nav-logout-btn:hover,
+.nav-logout-btn:focus-visible {
+  border-color: var(--color-danger);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 2.35rem;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.nav-toggle:hover,
+.nav-toggle:focus-visible {
+  background: var(--color-page);
+}
+
+@media (min-width: 48.01rem) {
+  .nav-collapsible[hidden],
+  .sidebar[hidden] {
+    display: flex !important;
+  }
+}
+
+@media (max-width: 48rem) {
+  .nav-collapsible[hidden],
+  .sidebar[hidden] {
+    display: none !important;
+  }
+
+  .nav-toggle {
+    display: inline-flex;
+  }
+
+  .nav-logout-form,
+  .nav-logout-btn {
+    width: 100%;
+  }
+}

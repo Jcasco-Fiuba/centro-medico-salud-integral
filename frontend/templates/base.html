@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
     {% block page_css %}{% endblock %}
   </head>
-  <body class="{% block body_class %}{% endblock %}">
+  <body class="{% block body_class %}{% endblock %}"{% if ruta_protegida %} data-auth-protected="true"{% endif %}>
     {% block body %}{% endblock %}
     <script src="{{ url_for('static', filename='js/base.js') }}" defer></script>
     {% block page_scripts %}{% endblock %}

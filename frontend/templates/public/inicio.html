@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Centro Médico Salud Integral{% endblock %}
+
+{% block page_css %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/public/inicio.css') }}">
+{% endblock %}
+
+{% block body %}
+  <main class="public-home">
+    {% include "components/nav_publico.html" %}
+
+    <section class="public-home__content" aria-labelledby="home-title">
+      <p class="public-home__eyebrow">Atención presencial · Una única sede</p>
+      <h1 id="home-title">Tu salud, nuestra prioridad</h1>
+      <p>Accedé a tu cuenta para gestionar tus consultas y turnos.</p>
+
+      <div class="public-home__actions">
+        {% if usuario_actual and usuario_actual.rol == "admin" %}
+          <a class="button" href="{{ url_for('administracion.inicio') }}">Ir a Administración</a>
+          <a class="button button--secondary" href="{{ url_for('recepcion.checkin') }}">Check-in Recepción</a>
+        {% else %}
+          <a class="button" href="{{ url_for('paciente.elegir_especialidad') }}">Reservar turno</a>
+          <a class="button button--secondary" href="{{ url_for('paciente.mis_turnos') }}">Mis turnos</a>
+          {% if not usuario_actual %}
+            <a class="button button--secondary" href="{{ url_for('auth.registrarse') }}">Crear cuenta de paciente</a>
+          {% endif %}
+        {% endif %}
+      </div>
+    </section>
+    
+    {# ---------- novedades ---------- #}
+    <section class="seccion" id="novedades">
+      <h2>Novedades</h2>
+      <div class="grilla">
+        {% for novedad in novedades %}
+          <article class="card">
+            <p class="seccion-fecha">{{ novedad.fecha }}</p>
+            <h3>{{ novedad.titulo }}</h3>
+            <p class="seccion-texto">{{ novedad.texto }}</p>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    {# ---------- campañas ---------- #}
+    <section class="seccion" id="campanias">
+      <h2>Campañas de salud</h2>
+      <div class="grilla">
+        {% for campania in campanias %}
+          <article class="card campania">
+            <h3>{{ campania.titulo }}</h3>
+            <p class="seccion-texto">{{ campania.texto }}</p>
+            <p class="campania-detalle">{{ campania.detalle }}</p>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    {# ---------- bbicación y horarios ---------- #}
+    <section class="seccion" id="ubicacion">
+      <h2>Ubicación y horarios</h2>
+      <div class="ubicacion">
+        <div class="card">
+          <h3>Sede Central</h3>
+          <p class="seccion-texto">Av. San Martín 1450, CABA</p>
+          <p class="seccion-texto">Teléfono: (011) 4567-8900</p>
+
+          <h3>Horarios de atención</h3>
+          <ul class="lista-horarios">
+            {% for horario in horarios %}
+              <li><span>{{ horario.dias }}</span> <strong>{{ horario.horas }}</strong></li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        {# El mapa es un iframe de Google Maps #}
+        <iframe
+          class="mapa"
+          src="https://www.google.com/maps?q=Av.+San+Mart%C3%ADn+1450,+CABA&output=embed"
+          title="Mapa de la Sede Central"
+          loading="lazy"
+        ></iframe>
+      </div>
+    </section>
+    
+{% include "components/pie_publico.html" %}
+  </main>
+{% endblock %}

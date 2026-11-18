@@ -1,0 +1,29 @@
+/* Paso 4 del flujo de reserva (revisar y confirmar). */
+
+.resumen-dato {
+  margin-bottom: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted, #eaeff1);
+}
+
+.resumen-dato .etiqueta {
+  margin: 0;
+}
+
+.resumen-dato p {
+  margin: 0;
+}
+
+/* Botón "Confirmar turno" cuando hay un problema y no se puede confirmar */
+.button[disabled] {
+  border-color: var(--color-border);
+  background: var(--color-surface-muted, #eaeff1);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.botones form {
+  margin: 0;
+}

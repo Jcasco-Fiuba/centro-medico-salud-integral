@@ -1,0 +1,94 @@
+/* Estilos del detalle del turno (comprobante y QR).*/
+
+.volver {
+  display: inline-block;
+  margin-bottom: var(--space-6);
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.volver:hover {
+  text-decoration: underline;
+}
+
+/* ---------- datos a la izquierda, QR a la derecha ---------- */
+.detalle-columnas {
+  display: flex;
+  gap: var(--space-6);
+  align-items: flex-start;
+}
+
+.detalle-columnas > .card {
+  flex: 3;
+}
+
+.detalle-columnas > aside {
+  flex: 2;
+}
+
+.detalle-columnas .codigo {
+  margin: var(--space-3) 0 var(--space-4);
+}
+
+.dato {
+  margin-bottom: var(--space-4);
+}
+
+.dato p {
+  margin: 0;
+}
+
+.enlace-color {
+  margin: var(--space-3) 0 0;
+  color: var(--color-primary);
+}
+
+/* ---------- QR ---------- */
+.qr {
+  display: flex;
+  justify-content: center;
+  width: fit-content;
+  margin: var(--space-4) auto;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: white;
+}
+
+.qr img {
+  display: block;
+  width: 220px;
+  height: 220px;
+}
+
+.centrado {
+  text-align: center;
+}
+
+.nota {
+  margin: 0;
+  font-size: var(--font-size-sm);
+}
+
+/* ---------- botones de acción ---------- */
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin: var(--space-6) 0;
+}
+
+/* .button--danger y .aviso--alerta están en avisos.css */
+
+/* ---------- mobile ---------- */
+@media (max-width: 800px) {
+  .detalle-columnas {
+    flex-direction: column;
+  }
+
+  .detalle-columnas > .card,
+  .detalle-columnas > aside {
+    flex: none;
+    width: 100%;
+  }
+}

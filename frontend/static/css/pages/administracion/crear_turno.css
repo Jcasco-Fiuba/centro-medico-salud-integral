@@ -1,0 +1,88 @@
+/* TITULOS */
+
+.admin-crear-turno h1 {
+    color: #173847;
+    margin-bottom: 15px;
+}
+
+.admin-crear-turno h2 {
+    color: #173847;
+    margin-bottom: 20px;
+}
+
+/* TARJETA */
+
+.admin-crear-turno .card {
+    margin-top: 20px;
+}
+
+/* FORMULARIO */
+
+.admin-crear-turno form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.admin-crear-turno label {
+    font-weight: 600;
+}
+
+.admin-crear-turno .form-control {
+    margin-bottom: 10px;
+}
+
+/* BOTONES */
+
+.admin-crear-turno .acciones-formulario {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    align-items: center;
+}
+
+/* INFORMACION */
+
+.admin-crear-turno .info-turno {
+    background-color: #e6f1f5;
+    color: #173847;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+}
+
+/* CAMPOS EN DOS COLUMNAS */
+
+.admin-crear-turno .campos-turno {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* CADA CAMPO */
+
+.admin-crear-turno .campo-turno {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.admin-crear-turno .campo-turno label {
+    font-weight: 600;
+}
+
+.admin-crear-turno .campo-turno .form-control {
+    width: 100%;
+    margin-bottom: 0;
+}
+
+/* ADAPTACIÓN A CELULARES */
+
+@media (max-width: 600px) {
+
+    .admin-crear-turno .campos-turno {
+        grid-template-columns: 1fr;
+    }
+
+}

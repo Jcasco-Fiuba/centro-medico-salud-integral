@@ -1,0 +1,115 @@
+/* TITULOS */
+
+.admin-disponibilidad h1 {
+    color: #173847;
+    margin-bottom: 15px;
+}
+
+.admin-disponibilidad h2 {
+    color: #173847;
+    margin-bottom: 20px;
+}
+
+/* FORMULARIO */
+
+.admin-disponibilidad form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.admin-disponibilidad label {
+    font-weight: 600;
+}
+
+.admin-disponibilidad form button {
+    align-self: flex-start;
+    margin-top: 10px;
+}
+
+/* TARJETAS */
+
+.admin-disponibilidad .card {
+    margin-top: 20px;
+}
+
+/* TABLA */
+
+.admin-disponibilidad .tabla-disponibilidad {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    margin-top: 20px;
+}
+
+.admin-disponibilidad .tabla-disponibilidad th {
+    background-color: #e6f1f5;
+    color: #173847;
+    padding: 16px;
+    text-align: left;
+    border-bottom: 2px solid #cbdde4;
+}
+
+.admin-disponibilidad .tabla-disponibilidad td {
+    padding: 16px;
+    border-bottom: 1px solid #e0e7eb;
+}
+
+.admin-disponibilidad .tabla-disponibilidad tr:hover td {
+    background-color: #f5f9fa;
+}
+
+/* CUADRICULA DE HORARIOS */
+
+.admin-disponibilidad .horarios-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+}
+
+/* TARJETAS INDIVIDUALES */
+
+.admin-disponibilidad .tarjeta-horario {
+    background-color: #e6f1f5;
+    border: 1px solid #cbdde4;
+    border-radius: 8px;
+    padding: 20px 12px;
+    text-align: center;
+}
+
+.admin-disponibilidad .tarjeta-horario strong {
+    display: block;
+    color: #173847;
+    margin-bottom: 10px;
+    overflow-wrap: anywhere;
+}
+
+.admin-disponibilidad .tarjeta-horario p {
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+/* ESTADO DISPONIBLE */
+
+.admin-disponibilidad .horario-disponible {
+    color: #207444;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* PANTALLAS MEDIANAS */
+
+@media (max-width: 800px) {
+    .admin-disponibilidad .horarios-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* CELULARES */
+
+@media (max-width: 500px) {
+    .admin-disponibilidad .horarios-grid {
+        grid-template-columns: 1fr;
+    }
+}

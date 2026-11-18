@@ -1,0 +1,43 @@
+/* Cancelar turno: confirmación (tarjeta tipo modal) y resultados (éxito / error). */
+
+.confirmacion {
+  max-width: 640px;
+  margin: var(--space-6) auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.confirmacion h2 {
+  font-size: 1.75rem;
+}
+
+.confirmacion p {
+  margin: 0 0 var(--space-3);
+}
+
+.destacado {
+  font-weight: 600;
+}
+
+.acciones-modal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.acciones-modal form {
+  margin: 0;
+}
+
+/* ---------- resultado: tarjeta con el turno ---------- */
+.resultado-turno {
+  margin-top: var(--space-4);
+}
+
+.resultado-turno p {
+  margin: var(--space-3) 0 0;
+}
+
+.resultado-turno .aviso {
+  margin: var(--space-4) 0;
+}

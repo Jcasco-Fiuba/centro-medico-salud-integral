@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Sala de espera | Centro Médico Salud Integral{% endblock %}
+
+{% block page_css %}
+  <!-- Recarga la página cada 30 segundos para ver a los pacientes que van llegando -->
+  <meta http-equiv="refresh" content="30;url={{ url_for('recepcion.sala_espera') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/recepcion/recepcion.css') }}">
+{% endblock %}
+
+{% block body %}
+  {% include "recepcion/_menu.html" %}
+
+  <main class="container recepcion-main">
+    <section class="card" aria-labelledby="sala-titulo">
+      <div class="recepcion-encabezado">
+        <div>
+          <h1 id="sala-titulo" class="recepcion-titulo">Sala de espera</h1>
+          <p class="recepcion-subtitulo">Pacientes de hoy, ordenados por hora de llegada.</p>
+        </div>
+        <a href="{{ url_for('recepcion.sala_espera') }}" class="button button--secondary">Actualizar</a>
+      </div>
+
+      {% if mensaje %}
+        <div class="alert alert--{{ tipo_mensaje }}" role="status">{{ mensaje }}</div>
+      {% endif %}
+
+      {% if turnos %}
+        <div class="recepcion-tabla-contenedor">
+          <table class="recepcion-tabla">
+            <thead>
+              <tr>
+                <th scope="col">Orden</th>
+                <th scope="col">Paciente</th>
+                <th scope="col">Médico</th>
+                <th scope="col">Turno</th>
+                <th scope="col">Llegó</th>
+                <th scope="col"><span class="visually-hidden">Acciones</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for turno in turnos %}
+                <tr>
+                  <td data-label="Orden">{{ loop.index }}</td>
+                  <td data-label="Paciente">
+                    <span class="recepcion-paciente">
+                      {{ turno.paciente }}
+                      <span class="recepcion-dni">DNI {{ turno.dni }}</span>
+                    </span>
+                  </td>
+                  <td data-label="Médico">{{ turno.medico }}</td>
+                  <td data-label="Turno">{{ turno.hora_turno }}</td>
+                  <td data-label="Llegó">{{ turno.hora_checkin }}</td>
+                  <td>
+                    <form action="{{ url_for('recepcion.atender_turno', id=turno.id) }}" method="post">
+                      <button type="submit" class="button">Atender</button>
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% elif not mensaje or tipo_mensaje != 'error' %}
+        <p class="recepcion-vacio">No hay pacientes esperando en este momento.</p>
+      {% endif %}
+    </section>
+  </main>
+{% endblock %}

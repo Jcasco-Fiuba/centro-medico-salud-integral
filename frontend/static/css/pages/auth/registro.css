@@ -1,0 +1,22 @@
+/* La pantalla de registro reutiliza la estructura, validación y estados base del login. */
+@import url("./login.css");
+
+/* Casilla de aceptación de términos y su estado de error */
+.login-terms-group {
+  gap: var(--space-2);
+}
+
+.login-terms-group .login-remember {
+  margin-block: var(--space-1) 0;
+}
+
+/* Adaptación para tablet y móvil */
+@media (max-width: 36rem) {
+  .login-card {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .login-terms-group .login-remember {
+    align-items: center;
+  }
+}

@@ -1,0 +1,24 @@
+<header class="topbar">
+  <div class="topbar-izquierda">
+    <button
+      type="button"
+      class="nav-toggle"
+      data-menu-toggle
+      aria-controls="admin-sidebar-menu"
+      aria-expanded="false"
+      aria-label="Abrir menú de administración"
+    >
+      Menú
+    </button>
+    <p>Administración / Gestión del centro</p>
+  </div>
+
+  <div class="topbar-usuario">
+    <span class="topbar-usuario__nombre">
+      {{ usuario_actual.nombre_completo if usuario_actual else 'Administrador' }} · Administrador
+    </span>
+    <form class="nav-logout-form" action="{{ url_for('auth.cerrar_sesion') }}" method="post">
+      <button type="submit" class="nav-logout-btn">Cerrar sesión</button>
+    </form>
+  </div>
+</header>

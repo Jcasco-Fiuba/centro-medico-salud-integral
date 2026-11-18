@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Cartilla | Centro Médico Salud Integral{% endblock %}
+
+{% block page_css %}
+  {# inicio.css: barra de arriba, pie y secciones. cartilla.css: las tarjetas de cada especialidad #}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/public/inicio.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/public/cartilla.css') }}">
+{% endblock %}
+
+{% block body %}
+  <main class="public-home">
+    {% include "components/nav_publico.html" %}
+
+    <section class="seccion">
+      <p class="seccion-fecha">Sede Central · Atención presencial</p>
+      <h1>Cartilla de especialidades y profesionales</h1>
+      <p class="seccion-texto">Conocé las especialidades del centro y los profesionales que atienden en cada una.</p>
+
+      {% if error %}
+        <p class="alert alert--error">{{ error }}</p>
+      {% endif %}
+
+      <div class="cartilla">
+        {% for especialidad in especialidades %}
+          <article class="card">
+            <h2>{{ especialidad.nombre }}</h2>
+            {% if especialidad.descripcion %}
+              <p class="seccion-texto">{{ especialidad.descripcion }}</p>
+            {% endif %}
+
+            {% if especialidad.medicos %}
+              <ul class="lista-medicos">
+                {% for medico in especialidad.medicos %}
+                  <li>
+                    <span>{{ medico.nombre }} {{ medico.apellido }}</span>
+                    <a class="button button--secondary"
+                       href="{{ url_for('public.turnos_disponibles', especialidad=especialidad.id, medico=medico.id) }}">Ver turnos</a>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="seccion-texto">Por el momento no hay profesionales en esta especialidad.</p>
+            {% endif %}
+          </article>
+        {% else %}
+          <p class="card seccion-texto">Todavía no hay especialidades cargadas.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    {% include "components/pie_publico.html" %}
+  </main>
+{% endblock %}

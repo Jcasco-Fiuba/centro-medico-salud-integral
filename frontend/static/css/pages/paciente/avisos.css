@@ -1,0 +1,36 @@
+/* Variantes de color del cuadro .aviso (la base está en portal.css), botón de peligro y alerta de éxito. */
+
+.aviso--alerta {
+  background: var(--color-warning-soft, #f6efe1);
+}
+
+.aviso--alerta .aviso-titulo {
+  color: var(--color-warning, #7a5a1e);
+}
+
+.aviso--error {
+  background: var(--color-danger-soft, #f8e7e7);
+}
+
+.aviso--error .aviso-titulo {
+  color: var(--color-danger, #9b3d3d);
+}
+
+.aviso--exito {
+  background: var(--color-success-soft, #e6f1ea);
+}
+
+.aviso--exito .aviso-titulo {
+  color: var(--color-success, #2f6b4a);
+}
+
+.button--danger {
+  background: var(--color-danger, #9b4444);
+  border-color: var(--color-danger, #9b4444);
+  color: white;
+}
+
+.alert--success {
+  background: var(--color-success-soft, #e6f1ea);
+  color: var(--color-success, #2f6b4a);
+}

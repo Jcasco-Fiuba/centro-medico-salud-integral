@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% from "components/panel_sesion.html" import vista_sesion %}
+
+{% block title %}Administración | Centro Médico Salud Integral{% endblock %}
+
+{% block body %}
+  {{ vista_sesion(
+    "Panel de administración",
+    "Sesión administrativa autenticada correctamente. Las pantallas de gestión se integrarán en las próximas oleadas.",
+    usuario,
+    "Módulo de administración"
+  ) }}
+{% endblock %}

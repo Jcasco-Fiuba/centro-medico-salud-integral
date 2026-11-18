@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Turnos disponibles | Centro Médico Salud Integral{% endblock %}
+
+{% block page_css %}
+  {# inicio.css: barra de arriba y pie. turnos_disponibles.css: el buscador y los horarios #}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/public/inicio.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/public/turnos_disponibles.css') }}">
+{% endblock %}
+
+{% block body %}
+  <main class="public-home">
+    {% include "components/nav_publico.html" %}
+
+    <section class="seccion">
+      <p class="seccion-fecha">Consulta sin iniciar sesión</p>
+      <h1>Turnos disponibles</h1>
+      <p class="seccion-texto">Elegí una especialidad, un profesional y un día para ver los horarios libres.</p>
+
+      {% if error %}
+        <p class="alert alert--error">{{ error }}</p>
+      {% endif %}
+
+      {# vuelve a esta misma página con ?especialidad=.... #}
+      <form class="card buscador-turnos" method="GET" action="{{ url_for('public.turnos_disponibles') }}">
+        <div class="form-field">
+          <label class="form-field__label" for="especialidad">Especialidad</label>
+          <select class="form-control" id="especialidad" name="especialidad" required>
+            <option value="">Elegí una especialidad</option>
+            {% for item in especialidades %}
+              <option value="{{ item.id }}" {% if item.id == especialidad_id %}selected{% endif %}>{{ item.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label class="form-field__label" for="medico">Profesional</label>
+          <select class="form-control" id="medico" name="medico">
+            {% if medicos %}
+              <option value="">Elegí un profesional</option>
+              {% for item in medicos %}
+                <option value="{{ item.id }}" {% if item.id == medico_id %}selected{% endif %}>{{ item.nombre }} {{ item.apellido }}</option>
+              {% endfor %}
+            {% else %}
+              <option value="">Primero elegí una especialidad y tocá Buscar</option>
+            {% endif %}
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label class="form-field__label" for="fecha">Día</label>
+          <input class="form-control" id="fecha" name="fecha" type="date" value="{{ fecha }}" min="{{ hoy }}">
+        </div>
+
+        <button class="button" type="submit">Buscar</button>
+      </form>
+    </section>
+
+    {# cuando ya eligió profesional y día #}
+    {% if medico_id and fecha %}
+      <section class="seccion">
+        <h2>Horarios libres</h2>
+
+        {% if horarios %}
+          <div class="lista-turnos">
+            {% for horario in horarios %}
+              {# Para reservar hay que iniciar sesión: si no hay sesión, el portal del paciente manda al login y después vuelve acá #}
+              <a class="turno-libre"
+                 href="{{ url_for('paciente.confirmar_reserva', especialidad=especialidad_id, medico=medico_id, fecha=fecha, turno=horario.id) }}">
+                {{ horario.hora }} h
+              </a>
+            {% endfor %}
+          </div>
+          <p class="seccion-texto">Tocá un horario para reservarlo. Si no iniciaste sesión, te lo vamos a pedir.</p>
+        {% else %}
+          <p class="card seccion-texto">No hay horarios libres para ese día. Probá con otra fecha.</p>
+        {% endif %}
+      </section>
+    {% endif %}
+
+    {% include "components/pie_publico.html" %}
+  </main>
+{% endblock %}

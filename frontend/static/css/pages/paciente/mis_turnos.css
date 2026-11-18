@@ -1,0 +1,181 @@
+/* Estilos de "Mis turnos" (listado, filtros y estado vacío). */
+
+/* ---------- encabezado con botón a la derecha ---------- */
+.encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+/* ---------- resumen + filtros ---------- */
+.filtros-barra {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.filtros-barra p {
+  margin: 0 0 var(--space-1);
+}
+
+.resumen-total {
+  font-weight: 600;
+}
+
+.filtros {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.filtros .form-field {
+  min-width: 220px;
+}
+
+/* ---------- títulos de sección ---------- */
+.seccion-titulo {
+  margin: var(--space-6) 0 var(--space-4);
+}
+
+.contador {
+  margin-left: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* ---------- listas de turnos ---------- */
+.turnos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-6);
+}
+
+.turnos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* ---------- tarjeta de turno ---------- */
+.turno {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.fecha-turno {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.fecha-dia {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.fecha-mes {
+  margin-top: var(--space-1);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.turno-info {
+  flex: 1;
+}
+
+.turno-info p {
+  margin: var(--space-1) 0 0;
+}
+
+.turno-info h3 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.turno-medico {
+  font-weight: 500;
+}
+
+/* ---------- acciones (solo turnos próximos) ---------- */
+.turno-acciones {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.boton-cancelar {
+  text-decoration: none;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-danger, #9b3d3d);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.boton-cancelar:hover {
+  text-decoration: underline;
+}
+
+/* ---------- colores de estado (la base .estado está en portal.css) ---------- */
+.estado--confirmado,
+.estado--atendido {
+  background: var(--color-success-soft, #e6f1ea);
+  color: var(--color-success, #2f6b4a);
+}
+
+.estado--cancelado,
+.estado--ausente {
+  background: var(--color-danger-soft, #f8e7e7);
+  color: var(--color-danger, #9b3d3d);
+}
+
+/* ---------- estado vacío ---------- */
+.vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-8) var(--space-6);
+  text-align: center;
+}
+
+.vacio-icono {
+  color: var(--color-primary);
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.vacio p {
+  max-width: 520px;
+  margin: 0 0 var(--space-6);
+}
+
+/* ---------- mobile ---------- */
+@media (max-width: 800px) {
+  .turnos-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filtros .form-field {
+    min-width: 0;
+    flex: 1;
+  }
+}
