@@ -58,6 +58,7 @@ def verificar_turno_activo(id_usuario: int, id_medico: int) -> bool:
     FROM turnos
     WHERE id_usuario = %(id_usuario)s AND id_medico = %(id_medico)s
       AND estado IN ('reservado', 'confirmado')
+      AND fecha_hora >= NOW()
     """
     filas = ejecutar_consulta(sql, {"id_usuario": id_usuario, "id_medico": id_medico})
     return len(filas) > 0
