@@ -119,3 +119,15 @@ aside p {
   margin-top: var(--space-6);
   padding: 0 var(--space-6);
 }
+
+@media (max-width: 700px) {
+  .columnas,
+  .buscador {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .opcion {
+    width: 100%;
+  }
+}
