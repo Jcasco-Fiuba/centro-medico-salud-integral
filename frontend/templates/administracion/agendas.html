@@ -4,9 +4,19 @@
 Gestion de turnos | Centro Médico
 {% endblock %}
 
-{% block body %}
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/administracion/dashboard.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/administracion/agendas.css') }}">
+{% endblock %}
 
+{% block body %}
+<div class="dashboard-layout">
+    {% include "components/sidebar_admin.html" %}
+
+    <main class="dashboard-main">
+        {% include "components/topbar_admin.html" %}
+
+        <div class="dashboard-content">
 <div class="container admin-turnos">
 
     <div class="encabezado-turnos">
@@ -142,8 +152,8 @@ Gestion de turnos | Centro Médico
             {% for turno in turnos %}
 
             <tr>
-                <td>{{ turno.id_medico }}</td>
-                <td>{{ turno.id_consultorio }}</td>
+                <td>{{ turno.medico_nombre or turno.id_medico }}</td>
+                <td>{{ turno.consultorio_nombre or turno.id_consultorio }}</td>
                 <td>{{ turno.fecha_hora }}</td>
                 <td>
                     <span class="estado-turno estado-{{ turno.estado }}">
@@ -163,6 +173,9 @@ Gestion de turnos | Centro Médico
         </table>
     </section>
 
+</div>
+        </div>
+    </main>
 </div>
 
 {% endblock %}

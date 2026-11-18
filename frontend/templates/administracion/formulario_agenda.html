@@ -1,224 +1,221 @@
 {% extends "base.html" %}
 
 {% block title %}
-    {% if editando %}
-        Editar agenda | Centro Médico
-    {% else %}
-        Alta de agenda | Centro Médico
-    {% endif %}
+{% if editando %}
+Editar agenda | Centro Médico
+{% else %}
+Alta de agenda | Centro Médico
+{% endif %}
+{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/administracion/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/administracion/formulario_agenda.css') }}">
 {% endblock %}
 
 {% block body %}
+<div class="dashboard-layout">
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/administracion/formulario_agenda.css') }}">
+    {% include "components/sidebar_admin.html" %}
 
-<div class="container admin-formulario-agenda">
+    <main class="dashboard-main">
 
-    {% if editando %}
+        {% include "components/topbar_admin.html" %}
 
-        <h1>Editar agenda</h1>
-        <p>Modificá los datos de la agenda de atención.</p>
+        <div class="dashboard-content">
 
-    {% else %}
+            <div class="container admin-formulario-agenda">
 
-        <h1>Alta de agenda</h1>
-        <p>Completá los datos para crear una nueva agenda.</p>
+                {% if editando %}
 
-    {% endif %}
+                <h1>Editar agenda</h1>
+                <p>Modificá los datos de la agenda de atención.</p>
 
-    <section class="card">
+                {% else %}
 
-        <h2>Datos de la agenda</h2>
+                <h1>Alta de agenda</h1>
+                <p>Completá los datos para crear una nueva agenda.</p>
 
-        <form method="POST">
+                {% endif %}
 
-            <div class="campos-agenda">
+                <section class="card">
 
+                    <h2>Datos de la agenda</h2>
 
+                    <form method="POST">
 
-                <div class="campo-agenda">
-
-                    <label for="medico">Médico:</label>
-
-                    <select id="medico" name="medico" class="form-control">
-
-                        <option value="">Seleccioná un médico</option>
-
-                        {% for item in medicos %}
-
-                            {% if item.activo %}
-
-                                <option value="{{ item.id }}">
-                                    {{ item.nombre }} {{ item.apellido }}
-                                </option>
-
-                            {% endif %}
-
-                        {% endfor %}
-
-                    </select>
-
-                </div>
-
-                <div class="campo-agenda">
-
-                    <label for="consultorio">Consultorio:</label>
-
-                    <select id="consultorio" name="consultorio" class="form-control">
-
-                        <option value="">Seleccioná un consultorio</option>
-
-                        {% for item in consultorios %}
-
-                            {% if item.activo %}
-
-                                <option value="{{ item.id }}">
-                                    {{ item.nombre }}
-                                </option>
-
-                            {% endif %}
-
-                        {% endfor %}
-
-                    </select>
-
-                </div>
+                        <div class="campos-agenda">
 
 
-                <div class="campo-agenda">
 
-                    <label for="fecha_desde">Fecha desde:</label>
+                            <div class="campo-agenda">
 
-                    <input
-                        type="date"
-                        id="fecha_desde"
-                        name="fecha_desde"
-                        class="form-control"
-                    >
+                                <label for="medico">Médico:</label>
 
-                </div>
+                                <select id="medico" name="medico" class="form-control">
 
-                <div class="campo-agenda">
+                                    <option value="">Seleccioná un médico</option>
 
-                    <label for="fecha_hasta">Fecha hasta:</label>
+                                    {% for item in medicos %}
 
-                    <input
-                        type="date"
-                        id="fecha_hasta"
-                        name="fecha_hasta"
-                        class="form-control"
-                    >
+                                    {% if item.activo %}
 
-                </div>
+                                    <option value="{{ item.id }}">
+                                        {{ item.nombre }} {{ item.apellido }}
+                                    </option>
+
+                                    {% endif %}
+
+                                    {% endfor %}
+
+                                </select>
+
+                            </div>
+
+                            <div class="campo-agenda">
+
+                                <label for="consultorio">Consultorio:</label>
+
+                                <select id="consultorio" name="consultorio" class="form-control">
+
+                                    <option value="">Seleccioná un consultorio</option>
+
+                                    {% for item in consultorios %}
+
+                                    {% if item.activo %}
+
+                                    <option value="{{ item.id }}">
+                                        {{ item.nombre }}
+                                    </option>
+
+                                    {% endif %}
+
+                                    {% endfor %}
+
+                                </select>
+
+                            </div>
 
 
-                <div class="campo-agenda">
+                            <div class="campo-agenda">
 
-                    <label for="hora_desde">Hora desde:</label>
+                                <label for="fecha_desde">Fecha desde:</label>
 
-                    <input
-                        type="time"
-                        id="hora_desde"
-                        name="hora_desde"
-                        class="form-control"
-                    >
+                                <input type="date" id="fecha_desde" name="fecha_desde" class="form-control">
 
-                </div>
+                            </div>
+
+                            <div class="campo-agenda">
+
+                                <label for="fecha_hasta">Fecha hasta:</label>
+
+                                <input type="date" id="fecha_hasta" name="fecha_hasta" class="form-control">
+
+                            </div>
 
 
-                <div class="campo-agenda">
+                            <div class="campo-agenda">
 
-                    <label for="hora_hasta">Hora hasta:</label>
+                                <label for="hora_desde">Hora desde:</label>
 
-                    <input
-                        type="time"
-                        id="hora_hasta"
-                        name="hora_hasta"
-                        class="form-control"
-                    >
+                                <input type="time" id="hora_desde" name="hora_desde" class="form-control">
 
-                </div>
+                            </div>
+
+
+                            <div class="campo-agenda">
+
+                                <label for="hora_hasta">Hora hasta:</label>
+
+                                <input type="time" id="hora_hasta" name="hora_hasta" class="form-control">
+
+                            </div>
+
+                        </div>
+
+                        <h3>Días de atención</h3>
+
+                        <div class="dias-agenda">
+
+                            <label class="dia-agenda">
+                                <input type="checkbox" name="dias" value="lunes">
+                                Lunes
+                            </label>
+
+                            <label class="dia-agenda">
+                                <input type="checkbox" name="dias" value="martes">
+                                Martes
+                            </label>
+
+                            <label class="dia-agenda">
+                                <input type="checkbox" name="dias" value="miercoles">
+                                Miércoles
+                            </label>
+
+                            <label class="dia-agenda">
+                                <input type="checkbox" name="dias" value="jueves">
+                                Jueves
+                            </label>
+
+                            <label class="dia-agenda">
+                                <input type="checkbox" name="dias" value="viernes">
+                                Viernes
+                            </label>
+
+                            <label class="dia-agenda">
+                                <input type="checkbox" name="dias" value="sabado">
+                                Sábado
+                            </label>
+
+                            <label class="dia-agenda">
+                                <input type="checkbox" name="dias" value="domingo">
+                                Domingo
+                            </label>
+
+                        </div>
+
+
+                        <h3>Duración del turno</h3>
+
+                        <div class="duracion-agenda">
+
+                            <select id="duracion" name="duracion" class="form-control">
+                                <option value="30">30 minutos</option>
+                            </select>
+
+                            <p class="info-agenda">
+                                Los turnos tendrán una duración de 30 minutos.
+                            </p>
+
+                        </div>
+
+                        <div class="acciones-agenda">
+
+                            <button type="submit" class="button" disabled>
+
+                                {% if editando %}
+                                Guardar cambios
+                                {% else %}
+                                Crear agenda
+                                {% endif %}
+
+                            </button>
+
+                            <a href="{{ url_for('administracion.agendas') }}" class="button button--secondary">
+                                Cancelar
+                            </a>
+
+                        </div>
+
+                    </form>
+
+                </section>
 
             </div>
 
-            <h3>Días de atención</h3>
+        </div>
 
-            <div class="dias-agenda">
-
-                <label class="dia-agenda">
-                    <input type="checkbox" name="dias" value="lunes">
-                    Lunes
-                </label>
-
-                <label class="dia-agenda">
-                    <input type="checkbox" name="dias" value="martes">
-                    Martes
-                </label>
-
-                <label class="dia-agenda">
-                    <input type="checkbox" name="dias" value="miercoles">
-                    Miércoles
-                </label>
-
-                <label class="dia-agenda">
-                    <input type="checkbox" name="dias" value="jueves">
-                    Jueves
-                </label>
-
-                <label class="dia-agenda">
-                    <input type="checkbox" name="dias" value="viernes">
-                    Viernes
-                </label>
-
-                <label class="dia-agenda">
-                    <input type="checkbox" name="dias" value="sabado">
-                    Sábado
-                </label>
-
-                <label class="dia-agenda">
-                    <input type="checkbox" name="dias" value="domingo">
-                    Domingo
-                </label>
-
-            </div>
-
-
-            <h3>Duración del turno</h3>
-
-            <div class="duracion-agenda">
-
-                <select id="duracion" name="duracion" class="form-control">
-                    <option value="30">30 minutos</option>
-                </select>
-
-                <p class="info-agenda">
-                    Los turnos tendrán una duración de 30 minutos.
-                </p>
-
-            </div>
-
-            <div class="acciones-agenda">
-
-                <button type="submit" class="button" disabled>
-
-                    {% if editando %}
-                        Guardar cambios
-                    {% else %}
-                        Crear agenda
-                    {% endif %}
-
-                </button>
-
-                <a href="{{ url_for('administracion.agendas') }}"
-                   class="button button--secondary">
-                    Cancelar
-                </a>
-
-            </div>
-
-        </form>
-
-    </section>
+    </main>
 
 </div>
 

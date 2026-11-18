@@ -1,12 +1,29 @@
 """Rutas de administración del centro médico."""
 
 from datetime import datetime
+from email.utils import parsedate_to_datetime
 from urllib.parse import urlencode
 
-from flask import Blueprint, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, redirect, render_template, request, url_for
 from services import api_client
 
 administracion_bp = Blueprint("administracion", __name__, url_prefix="/administracion")
+
+
+@administracion_bp.context_processor
+def enlaces_otros_modulos():
+    """Conserva las URL de integración mientras los módulos se incorporan a la rama."""
+    destinos = {
+        "checkin": ("recepcion.checkin", "/recepcion/checkin"),
+        "sala_espera": ("recepcion.sala_espera", "/recepcion/sala-espera"),
+        "cerrar_sesion": ("auth.cerrar_sesion", "/auth/logout"),
+    }
+    return {
+        "enlaces_admin": {
+            nombre: url_for(endpoint) if endpoint in current_app.view_functions else ruta
+            for nombre, (endpoint, ruta) in destinos.items()
+        }
+    }
 
 
 # --- HELPER PARA MANEJO DE ERRORES DE LA API ---
@@ -37,42 +54,123 @@ def cargar_opciones_agenda():
     return medicos, consultorios
 
 
+def _formatear_porcentaje(numerador: int, denominador: int) -> str:
+    """Formatea un porcentaje con coma decimal (`12,3 %`)."""
+    if denominador <= 0:
+        return "0,0 %"
+    valor = (numerador / denominador) * 100
+    return f"{valor:.1f} %".replace(".", ",")
+
+
+def _hora_del_turno(fecha_hora):
+    """Lee fechas ISO y fechas HTTP serializadas por Flask."""
+    if not isinstance(fecha_hora, str):
+        return None
+    try:
+        return datetime.fromisoformat(fecha_hora).hour
+    except ValueError:
+        try:
+            return parsedate_to_datetime(fecha_hora).hour
+        except ValueError:
+            return None
+
+
+def _calcular_metricas_dashboard(turnos: list[dict]) -> dict:
+    """Calcula los indicadores reales del dashboard a partir de los turnos existentes."""
+    estados = {
+        "disponible": 0,
+        "reservado": 0,
+        "confirmado": 0,
+        "atendido": 0,
+        "cancelado": 0,
+        "ausente": 0,
+    }
+    conteo_por_medico: dict[int, int] = {}
+    estados_ocupados = {"reservado", "confirmado", "atendido", "ausente"}
+    franjas = {
+        (inicio, fin): {"nombre": f"{inicio}-{fin} h", "ocupados": 0, "total": 0}
+        for inicio, fin in ((8, 10), (10, 12), (12, 14), (14, 17), (17, 20))
+    }
+
+    for turno in turnos:
+        estado = str(turno.get("estado", "")).lower()
+        if estado in estados:
+            estados[estado] += 1
+        id_medico = turno.get("id_medico")
+        if isinstance(id_medico, int):
+            conteo_por_medico[id_medico] = conteo_por_medico.get(id_medico, 0) + 1
+        hora = _hora_del_turno(turno.get("fecha_hora"))
+        if hora is not None:
+            for (inicio, fin), franja in franjas.items():
+                if inicio <= hora < fin:
+                    franja["total"] += 1
+                    franja["ocupados"] += estado in estados_ocupados
+                    break
+
+    total_turnos = len(turnos)
+    cupos_ocupados = sum(estados[estado] for estado in estados_ocupados)
+    for franja in franjas.values():
+        total = franja["total"]
+        franja["porcentaje"] = round(franja["ocupados"] / total * 100) if total else 0
+
+    conteo_especialidades: dict[str, int] = {}
+    for id_medico, cantidad in conteo_por_medico.items():
+        detalle, status_detalle = api_client.get(f"/api/medicos/{id_medico}")
+        if status_detalle != 200 or not isinstance(detalle, dict):
+            continue
+        esps = detalle.get("especialidades") or []
+        if not esps:
+            conteo_especialidades["Sin especialidad"] = (
+                conteo_especialidades.get("Sin especialidad", 0) + cantidad
+            )
+            continue
+        for esp in esps:
+            nombre_esp = esp.get("nombre")
+            if nombre_esp:
+                conteo_especialidades[nombre_esp] = (
+                    conteo_especialidades.get(nombre_esp, 0) + cantidad
+                )
+
+    max_esp = max(conteo_especialidades.values(), default=0)
+    especialidades_ranking = [
+        {
+            "nombre": nombre,
+            "cantidad": cantidad,
+            "porcentaje": round((cantidad / max_esp) * 100) if max_esp > 0 else 0,
+        }
+        for nombre, cantidad in sorted(
+            conteo_especialidades.items(), key=lambda item: (-item[1], item[0])
+        )[:6]
+    ]
+
+    return {
+        "total_turnos": total_turnos,
+        "ocupacion_porcentaje": _formatear_porcentaje(cupos_ocupados, total_turnos),
+        "ocupacion_detalle": f"{cupos_ocupados} de {total_turnos} cupos de agenda",
+        "cancelaciones_total": estados["cancelado"],
+        "cancelaciones_porcentaje": f"{_formatear_porcentaje(estados['cancelado'], total_turnos)} del total de turnos",
+        "ausentismo_porcentaje": _formatear_porcentaje(estados["ausente"], total_turnos),
+        "ausentismo_detalle": f"{estados['ausente']} ausentes de {total_turnos} turnos",
+        "especialidades": especialidades_ranking,
+        "estados": estados,
+        "franjas": list(franjas.values()),
+    }
+
+
 # --- DASHBOARD ---
 
 @administracion_bp.get("/dashboard")
 def dashboard():
-    respuesta, status = api_client.get("/api/dashboard/stats")
-
-    if status == 200 and isinstance(respuesta, dict) and "total_turnos" in respuesta:
-        metricas = respuesta
+    """Panel principal con métricas reales calculadas desde `/api/turnos`."""
+    respuesta, status = api_client.get("/api/turnos")
+    if status == 200 and isinstance(respuesta, list):
+        metricas = _calcular_metricas_dashboard(respuesta)
+        error = None
     else:
-        metricas = {
-            "total_turnos": 64,
-            "ocupacion_porcentaje": "72,5 %",
-            "ocupacion_detalle": "58 de 80 cupos de agenda",
-            "cancelaciones_total": 6,
-            "cancelaciones_porcentaje": "9,4 % de los turnos del día",
-            "ausentismo_porcentaje": "6,3 %",
-            "ausentismo_detalle": "4 ausentes de 64 turnos",
-            "total_especialidades": 64,
-            "especialidades": [
-                {"nombre": "Clínica médica", "cantidad": 22, "porcentaje": 100},
-                {"nombre": "Cardiología", "cantidad": 16, "porcentaje": 73},
-                {"nombre": "Dermatología", "cantidad": 10, "porcentaje": 45},
-                {"nombre": "Traumatología", "cantidad": 8, "porcentaje": 36},
-                {"nombre": "Ginecología", "cantidad": 5, "porcentaje": 23},
-                {"nombre": "Pediatría", "cantidad": 3, "porcentaje": 14},
-            ],
-            "estados": {
-                "reservado": 40,
-                "confirmado": 5,
-                "atendido": 9,
-                "cancelado": 6,
-                "ausente": 4,
-            },
-        }
+        metricas = _calcular_metricas_dashboard([])
+        error = obtener_mensaje_error(respuesta, "No se pudieron cargar las métricas del dashboard.")
 
-    return render_template("administracion/dashboard.html", metricas=metricas)
+    return render_template("administracion/dashboard.html", metricas=metricas, error=error)
 
 
 # --- ESPECIALIDADES ---
@@ -374,13 +472,13 @@ def dar_baja_medico(id):
 @administracion_bp.route("/consultorios", methods=["GET"])
 def consultorios():
     """Listado principal de consultorios."""
-    try:
-        res = api_client.get("/api/consultorios")
-        consultorios_list = res.json().get("consultorios", []) if res.status_code == 200 else []
-    except Exception:
-        consultorios_list = []
-        
+    respuesta, status = api_client.get("/api/consultorios")
+    consultorios_list = []
     error = request.args.get("error")
+    if status == 200 and isinstance(respuesta, dict):
+        consultorios_list = respuesta.get("consultorios", [])
+    else:
+        error = error or obtener_mensaje_error(respuesta, "No se pudieron cargar los consultorios.")
     return render_template("administracion/consultorios.html", consultorios=consultorios_list, error=error)
 
 
@@ -392,13 +490,12 @@ def nuevo_consultorio():
             "nombre": request.form.get("nombre"),
             "ubicacion": request.form.get("ubicacion")
         }
-        
-        res = api_client.post("/api/consultorios", json=datos)
-        if res.status_code in (200, 201):
+
+        respuesta, status = api_client.post("/api/consultorios", datos)
+        if status in (200, 201):
             return redirect(url_for("administracion.consultorios"))
-            
-        body = res.json()
-        error_msg = body.get("errores", [body.get("error", "Error al crear el consultorio")])[0]
+
+        error_msg = obtener_mensaje_error(respuesta, "Error al crear el consultorio.")
         return render_template("administracion/formulario_consultorio.html", editando=False, error=error_msg, consultorio=datos)
 
     return render_template("administracion/formulario_consultorio.html", editando=False, consultorio=None)
@@ -412,17 +509,16 @@ def editar_consultorio(id):
             "nombre": request.form.get("nombre"),
             "ubicacion": request.form.get("ubicacion")
         }
-        
-        res = api_client.patch(f"/api/consultorios/{id}", json=datos)
-        if res.status_code == 200:
+
+        respuesta, status = api_client.patch(f"/api/consultorios/{id}", datos)
+        if status in (200, 204):
             return redirect(url_for("administracion.consultorios"))
-            
-        body = res.json()
-        error_msg = body.get("errores", [body.get("error", "Error al actualizar")])[0]
+
+        error_msg = obtener_mensaje_error(respuesta, "Error al actualizar el consultorio.")
         return render_template("administracion/formulario_consultorio.html", editando=True, consultorio=datos, error=error_msg)
 
-    res = api_client.get(f"/api/consultorios/{id}")
-    consultorio_data = res.json().get("consultorio") if res.status_code == 200 else None
+    respuesta, status = api_client.get(f"/api/consultorios/{id}")
+    consultorio_data = respuesta.get("consultorio") if status == 200 and isinstance(respuesta, dict) else None
 
     return render_template("administracion/formulario_consultorio.html", editando=True, consultorio=consultorio_data)
 
@@ -430,11 +526,11 @@ def editar_consultorio(id):
 @administracion_bp.route("/consultorios/<int:id>/baja", methods=["POST"])
 def dar_baja_consultorio(id):
     """Baja lógica de consultorio."""
-    res = api_client.patch(f"/api/consultorios/{id}/baja")
-    if res.status_code == 200:
+    respuesta, status = api_client.patch(f"/api/consultorios/{id}/baja")
+    if status in (200, 204):
         return redirect(url_for("administracion.consultorios"))
-        
-    error_msg = res.json().get("error", "No se pudo dar de baja el consultorio.")
+
+    error_msg = obtener_mensaje_error(respuesta, "No se pudo dar de baja el consultorio.")
     return redirect(url_for("administracion.consultorios", error=error_msg))
 
 @administracion_bp.route("/agendas")
@@ -475,6 +571,31 @@ def agendas():
         medicos = respuesta_medicos
     else:
         error_medicos = "No se pudieron cargar los médicos."
+
+    respuesta_consultorios, status_consultorios = api_client.get("/api/consultorios")
+
+    consultorios = []
+
+    if status_consultorios == 200 and isinstance(respuesta_consultorios, dict):
+        consultorios = respuesta_consultorios.get("consultorios", [])
+
+    mapa_medicos = {}
+
+    for item in medicos:
+        mapa_medicos[str(item["id"])] = item["nombre"] + " " + item["apellido"]
+
+    mapa_consultorios = {}
+
+    for item in consultorios:
+        mapa_consultorios[str(item["id"])] = item["nombre"]
+
+    for turno in turnos:
+
+        id_medico = str(turno["id_medico"])
+        id_consultorio = str(turno["id_consultorio"])
+
+        turno["medico_nombre"] = mapa_medicos.get(id_medico, id_medico)
+        turno["consultorio_nombre"] = mapa_consultorios.get(id_consultorio, id_consultorio)
 
 
     return render_template(

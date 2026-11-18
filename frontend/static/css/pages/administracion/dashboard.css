@@ -69,6 +69,10 @@
     font-weight: 600;
 }
 
+.sidebar-titulo--secundario {
+    margin-top: 22px;
+}
+
 .sidebar-nav {
     display: flex;
     flex-direction: column;
@@ -130,14 +134,22 @@
 /* BARRA SUPERIOR */
 
 .topbar {
-    height: 65px;
+    min-height: 65px;
     background-color: #ffffff;
     border-bottom: 1px solid #e2e7ed;
-    padding: 0 35px;
+    padding: 10px 35px;
 
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 16px;
+}
+
+.topbar-izquierda {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
 }
 
 .topbar p {
@@ -147,10 +159,16 @@
 }
 
 .topbar-usuario {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     font-size: 13px;
     font-weight: 600;
     color: #243e50;
-    cursor: pointer;
+}
+
+.topbar-usuario__nombre {
+    white-space: nowrap;
 }
 
 
@@ -304,30 +322,6 @@
     border-radius: 10px;
 }
 
-.barra-clinica {
-    width: 100%;
-}
-
-.barra-cardiologia {
-    width: 73%;
-}
-
-.barra-dermatologia {
-    width: 45%;
-}
-
-.barra-traumatologia {
-    width: 36%;
-}
-
-.barra-ginecologia {
-    width: 23%;
-}
-
-.barra-pediatria {
-    width: 14%;
-}
-
 
 /* OCUPACIÓN POR HORARIO */
 
@@ -354,6 +348,7 @@
 .barra-horario {
     width: 100%;
     max-width: 45px;
+    height: 130px;
     background-color: #e8eef1;
     border-radius: 5px 5px 0 0;
     position: relative;
@@ -365,36 +360,9 @@
     bottom: 0;
     left: 0;
     width: 100%;
+    height: var(--ocupacion, 0%);
     background-color: #28677b;
     border-radius: 5px 5px 0 0;
-}
-
-.barra-1::before {
-    height: 81%;
-}
-
-.barra-2::before {
-    height: 87%;
-}
-
-.barra-3::before {
-    height: 68%;
-}
-
-.barra-4::before {
-    height: 75%;
-}
-
-.barra-5::before {
-    height: 50%;
-}
-
-.barra-1,
-.barra-2,
-.barra-3,
-.barra-4,
-.barra-5 {
-    height: 130px;
 }
 
 .grafico-leyenda {
@@ -420,28 +388,27 @@
     height: 100%;
 }
 
+.estado-disponible {
+    background-color: #e8eef1;
+}
+
 .estado-reservado {
-    width: 62.5%;
     background-color: #28677b;
 }
 
 .estado-confirmado {
-    width: 7.8%;
     background-color: #438d80;
 }
 
 .estado-atendido {
-    width: 14.1%;
     background-color: #8eaaa0;
 }
 
 .estado-cancelado {
-    width: 9.4%;
     background-color: #ad554e;
 }
 
 .estado-ausente {
-    width: 6.2%;
     background-color: #92764b;
 }
 
@@ -568,16 +535,24 @@
 
 /* PANTALLAS PEQUEÑAS */
 
-@media (max-width: 750px) {
+@media (max-width: 48rem) {
 
     .dashboard-layout {
         flex-direction: column;
     }
 
     .sidebar {
+        position: static;
         width: 100%;
+        height: auto;
         min-height: auto;
-        
+        border-right: none;
+        border-bottom: 1px solid #e2e7ed;
+    }
+
+    .dashboard-main {
+        margin-left: 0;
+        width: 100%;
     }
 
     .sidebar-info {
@@ -593,7 +568,16 @@
     }
 
     .topbar {
-        padding: 15px;
+        height: auto;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 14px 16px;
+    }
+
+    .topbar-usuario {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
     }
 
     .dashboard-content {

@@ -4,10 +4,19 @@
 Disponibilidad | Centro Médico
 {% endblock %}
 
-{% block body %}
-
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/administracion/dashboard.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/administracion/disponibilidad.css') }}">
+{% endblock %}
 
+{% block body %}
+<div class="dashboard-layout">
+    {% include "components/sidebar_admin.html" %}
+
+    <main class="dashboard-main">
+        {% include "components/topbar_admin.html" %}
+
+        <div class="dashboard-content">
 <div class="container admin-disponibilidad">
 
     <h1>Disponibilidad de turnos</h1>
@@ -126,6 +135,9 @@ Disponibilidad | Centro Médico
 
     </section>
 
+</div>
+        </div>
+    </main>
 </div>
 
 {% endblock %}
