@@ -185,6 +185,7 @@ def crear_admin_nuevo_prueba(
             "apellido": apellido,
             "email": email,
             "password": password,
+            "acepta_terminos": True,  # solo para pasar la validacion, no se guarda en DB
         }
     )
     if error_msg is not None or datos_validados is None:
