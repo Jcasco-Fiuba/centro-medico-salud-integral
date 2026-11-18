@@ -8,8 +8,6 @@ public_bp = Blueprint("public", __name__)
 
 @public_bp.get("/")
 def inicio():
-    @public_bp.get("/")
-def inicio():
     """Muestra el portal público: novedades, campañas de salud, ubicación y horarios."""
     novedades = [
         {
