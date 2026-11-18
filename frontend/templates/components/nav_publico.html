@@ -21,6 +21,7 @@
   </div>
 
   <nav id="nav-publico-menu" class="public-home__nav nav-collapsible" aria-label="Accesos principales">
+    <a class="public-home__link" href="{{ url_for('public.cartilla') }}">Cartilla</a>
     <a class="public-home__link" href="{{ url_for('public.turnos_disponibles') }}">Turnos disponibles</a>
     <a class="public-home__link" href="{{ url_for('paciente.elegir_especialidad') }}">Reservar turno</a>
     <a class="public-home__link" href="{{ url_for('paciente.mis_turnos') }}">Mis turnos</a>
