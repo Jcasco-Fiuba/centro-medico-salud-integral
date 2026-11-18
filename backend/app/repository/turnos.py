@@ -51,6 +51,16 @@ def buscar_turno_id(id_turno):
     filas = ejecutar_consulta(sql, {"id": int(id_turno)})
     return filas[0] if filas else None
 
+def verificar_turno_activo(id_usuario: int, id_medico: int) -> bool:
+    """Indica si el paciente ya tiene un turno reservado o confirmado con ese médico."""
+    sql = """
+    SELECT id
+    FROM turnos
+    WHERE id_usuario = %(id_usuario)s AND id_medico = %(id_medico)s
+      AND estado IN ('reservado', 'confirmado')
+    """
+    filas = ejecutar_consulta(sql, {"id_usuario": id_usuario, "id_medico": id_medico})
+    return len(filas) > 0
 
 def buscar_turno_dni(dni: str) -> list[dict]:
     """Recibe el DNI de un paciente y retorna el detalle de sus turnos."""
