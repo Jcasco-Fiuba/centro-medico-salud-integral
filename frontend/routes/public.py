@@ -106,3 +106,33 @@ def turnos_disponibles():
         hoy=ahora.strftime("%Y-%m-%d"),
         error=error,
     )
+
+@public_bp.get("/cartilla")
+def cartilla():
+    """Cartilla pública: cada especialidad activa con sus médicos activos."""
+    error = None
+    cartilla_especialidades = []
+
+    respuesta, status = api_client.get("/api/especialidades")
+    if status != 200:
+        return render_template("public/cartilla.html", especialidades=[],
+                               error="No pudimos cargar la cartilla.")
+
+    for especialidad in respuesta["especialidades"]:
+        if not especialidad.get("activo", True):
+            continue
+
+        # El backend ya devuelve solo los médicos activos de esa especialidad
+        medicos, status = api_client.get(f"/api/medicos?especialidad={especialidad['id']}")
+        if status != 200:
+            medicos = []
+            error = "No pudimos cargar algunos profesionales."
+
+        cartilla_especialidades.append({
+            "id": especialidad["id"],
+            "nombre": especialidad["nombre"],
+            "descripcion": especialidad.get("descripcion") or "",
+            "medicos": medicos,
+        })
+
+    return render_template("public/cartilla.html", especialidades=cartilla_especialidades, error=error)
