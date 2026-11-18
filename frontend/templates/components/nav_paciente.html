@@ -31,6 +31,10 @@
       href="{{ url_for('paciente.mis_turnos') }}"
       {% if request.endpoint in ['paciente.mis_turnos', 'paciente.detalle_turno', 'paciente.cancelar_turno'] %}class="activo" aria-current="page"{% endif %}
     >Mis turnos</a>
+    <a
+      href="{{ url_for('paciente.mi_perfil') }}"
+      {% if request.endpoint == 'paciente.mi_perfil' %}class="activo" aria-current="page"{% endif %}
+    >Mi perfil</a>
 
     {% if u %}
       <span class="usuario">{{ u.iniciales }} · {{ (u.nombre ~ ' ' ~ u.apellido)|trim }}</span>
