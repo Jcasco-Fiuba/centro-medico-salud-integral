@@ -863,3 +863,27 @@ def descargar_comprobante(turno_id: int):
             "Content-Disposition": f'attachment; filename="comprobante-turno-{turno_id}.html"'
         },
     )
+
+
+@paciente_bp.route("/perfil", methods=["GET", "POST"])
+def mi_perfil():
+    """Muestra y actualiza los datos personales del paciente (nombre, apellido y email)."""
+    paciente, error = _cargar_paciente_sesion()
+    mensaje = None
+
+    if request.method == "POST":
+        datos = {
+            "nombre": request.form.get("nombre", "").strip(),
+            "apellido": request.form.get("apellido", "").strip(),
+            "email": request.form.get("email", "").strip(),
+        }
+        respuesta, status = api_client.patch(f"/api/pacientes/{paciente['dni']}", datos)
+        if status == 200:
+            return redirect(url_for("paciente.mi_perfil", guardado=1))
+        error = _extraer_error_api(respuesta, "No se pudieron guardar los cambios.")
+        paciente.update(datos)
+
+    if request.args.get("guardado"):
+        mensaje = "Tus datos se guardaron correctamente."
+
+    return render_template("paciente/perfil.html", paciente=paciente, error=error, mensaje=mensaje)
