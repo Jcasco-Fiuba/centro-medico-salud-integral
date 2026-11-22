@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar paciente' if editando else 'Alta de paciente' }} | Administración{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/administracion/especialidades.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/administracion/pacientes.css') }}">
+{% endblock %}
+
+{% block body %}
+
+<div class="dashboard-layout">
+
+    <!-- BARRA LATERAL -->
+    {% include "components/sidebar_admin.html" %}
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="dashboard-main">
+
+        <!-- BARRA SUPERIOR -->
+        {% include "components/topbar_admin.html" %}
+
+        <div class="dashboard-content">
+
+            <!-- ENCABEZADO -->
+            <section class="dashboard-header">
+                <p class="breadcrumb">ADMINISTRACIÓN · PACIENTES</p>
+                <h1>{{ 'Editar paciente' if editando else 'Alta de paciente' }}</h1>
+                <p>{{ 'Modificá los datos personales del paciente.' if editando else 'Registrá a un paciente que se acerca a recepción.' }}</p>
+            </section>
+
+            <!-- FORMULARIO -->
+            <section class="panel-formulario">
+
+                {% if error %}
+                <div class="mensaje-error">✕ {{ error }}</div>
+                {% endif %}
+
+                <form method="POST" action="{{ url_for('administracion.editar_paciente', dni=paciente.dni) if editando else url_for('administracion.nuevo_paciente') }}" class="formulario-especialidad">
+
+                    <div class="campo-formulario">
+                        <label for="dni">DNI *</label>
+                        {% if editando %}
+                        <input type="text" id="dni" value="{{ paciente.dni }}" disabled>
+                        <p class="campo-ayuda">El DNI no se puede modificar.</p>
+                        {% else %}
+                        <input type="text" id="dni" name="dni" value="{{ paciente.dni or '' }}" placeholder="Sin puntos" required minlength="7" maxlength="8" inputmode="numeric">
+                        <p class="campo-ayuda">7 u 8 dígitos, sin puntos.</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="campo-formulario">
+                        <label for="nombre">Nombre *</label>
+                        <input type="text" id="nombre" name="nombre" value="{{ paciente.nombre or '' }}" required maxlength="100">
+                    </div>
+
+                    <div class="campo-formulario">
+                        <label for="apellido">Apellido *</label>
+                        <input type="text" id="apellido" name="apellido" value="{{ paciente.apellido or '' }}" required maxlength="100">
+                    </div>
+
+                    <div class="campo-formulario">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" value="{{ paciente.email or '' }}" required maxlength="254">
+                        {% if not editando %}
+                        <p class="campo-ayuda">Ahí le llega al paciente el QR de cada turno.</p>
+                        {% endif %}
+                    </div>
+
+                    {% if not editando %}
+                    <div class="campo-formulario">
+                        <label for="password">Contraseña inicial *</label>
+                        <input type="password" id="password" name="password" required minlength="8" maxlength="128">
+                        <p class="campo-ayuda">Mínimo 8 caracteres. El paciente la usa para entrar al portal.</p>
+                    </div>
+
+                    <label class="campo-check">
+                        <input type="checkbox" name="acepta_terminos" value="1" required>
+                        El paciente aceptó los términos y condiciones y la política de privacidad.
+                    </label>
+                    {% endif %}
+
+                    <div class="formulario-acciones">
+                        <button type="submit" class="btn-guardar">{{ 'Guardar cambios' if editando else 'Registrar paciente' }}</button>
+                        <a href="{{ url_for('administracion.pacientes') }}" class="btn-cancelar">Cancelar</a>
+                    </div>
+
+                </form>
+
+            </section>
+
+        </div>
+
+    </main>
+
+</div>
+
+{% endblock %}
