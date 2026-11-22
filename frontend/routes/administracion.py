@@ -677,3 +677,104 @@ def guardar_turno():
         consultorios=consultorios_list,
         error=error,
     )
+
+
+# --- PACIENTES ---
+
+def _cargar_pacientes():
+    """Obtiene la lista completa de pacientes desde la API."""
+    respuesta, status = api_client.get("/api/pacientes")
+    if status == 200 and isinstance(respuesta, dict):
+        return respuesta.get("pacientes", []), None
+    return [], obtener_mensaje_error(respuesta, "No se pudieron cargar los pacientes.")
+
+
+def _datos_formulario_paciente(form):
+    """Lee del formulario los datos personales que se pueden editar."""
+    return {
+        "nombre": form.get("nombre", "").strip(),
+        "apellido": form.get("apellido", "").strip(),
+        "email": form.get("email", "").strip(),
+    }
+
+
+@administracion_bp.route("/pacientes", methods=["GET"])
+def pacientes():
+    """Listado con búsqueda y filtro de pacientes."""
+    buscar = request.args.get("buscar", "").strip()
+    estado = request.args.get("estado", "")
+
+    lista, error_mensaje = _cargar_pacientes()
+    pacientes_data = _filtrar_por_texto_y_estado(lista, buscar, estado, ("dni", "nombre", "apellido", "email"))
+
+    return render_template(
+        "administracion/pacientes.html",
+        pacientes=pacientes_data,
+        buscar=buscar,
+        estado=estado,
+        error=error_mensaje or request.args.get("error"),
+    )
+
+
+@administracion_bp.route("/pacientes/nuevo", methods=["GET", "POST"])
+def nuevo_paciente():
+    """Alta de un paciente desde recepción mediante `POST /api/pacientes`."""
+    error = None
+    paciente = {}
+
+    if request.method == "POST":
+        paciente = _datos_formulario_paciente(request.form)
+        paciente["dni"] = request.form.get("dni", "").strip()
+
+        if not request.form.get("acepta_terminos"):
+            error = "El paciente debe aceptar los términos y condiciones y la política de privacidad."
+        else:
+            datos = dict(paciente, password=request.form.get("password", ""), acepta_terminos=True)
+            respuesta, status = api_client.post("/api/pacientes", datos)
+            if status == 201:
+                return redirect(url_for("administracion.pacientes", creado="1"))
+            error = obtener_mensaje_error(respuesta, "No se pudo registrar el paciente.")
+
+    return render_template(
+        "administracion/formulario_paciente.html",
+        editando=False,
+        paciente=paciente,
+        error=error,
+    )
+
+
+@administracion_bp.route("/pacientes/<dni>/editar", methods=["GET", "POST"])
+def editar_paciente(dni):
+    """Edición de nombre, apellido y email mediante `PATCH /api/pacientes/<dni>`."""
+    error = None
+
+    respuesta_get, status_get = api_client.get(f"/api/pacientes/{dni}")
+    if status_get != 200 or not isinstance(respuesta_get, dict):
+        return redirect(url_for("administracion.pacientes", error="No se encontró el paciente."))
+
+    paciente = respuesta_get.get("paciente", {})
+
+    if request.method == "POST":
+        datos = _datos_formulario_paciente(request.form)
+        respuesta, status = api_client.patch(f"/api/pacientes/{dni}", datos)
+        if status == 200:
+            return redirect(url_for("administracion.pacientes", editado="1"))
+        error = obtener_mensaje_error(respuesta, "No se pudo actualizar el paciente.")
+        paciente.update(datos)
+
+    return render_template(
+        "administracion/formulario_paciente.html",
+        editando=True,
+        paciente=paciente,
+        error=error,
+    )
+
+
+@administracion_bp.route("/pacientes/<dni>/baja", methods=["POST"])
+def dar_baja_paciente(dni):
+    """Baja lógica de un paciente mediante `PATCH /api/pacientes/<dni>/baja`."""
+    respuesta, status = api_client.patch(f"/api/pacientes/{dni}/baja")
+    if status == 200:
+        return redirect(url_for("administracion.pacientes", baja="1"))
+    error = obtener_mensaje_error(respuesta, "No se pudo dar de baja al paciente.")
+    return redirect(url_for("administracion.pacientes", error=error))
