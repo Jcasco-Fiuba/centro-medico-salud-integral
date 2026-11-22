@@ -1,0 +1,37 @@
+/* estilos para ABM de pacientes.
+   tabla, filtros, formulario y botones: especialidades.css. */
+
+/* Casilla de aceptación de términos en el alta */
+.campo-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.campo-check input {
+    width: auto;
+    margin-top: 3px;
+}
+
+/* El DNI se muestra, pero no se edita */
+.campo-formulario input:disabled {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+/* El botón "Dar de baja" va dentro de un formulario en la misma línea */
+.form-en-linea {
+    display: inline;
+}
+
+.tabla-vacia {
+    text-align: center;
+    padding: 20px;
+}
+
+.mensaje-error {
+    margin-bottom: 16px;
+}
