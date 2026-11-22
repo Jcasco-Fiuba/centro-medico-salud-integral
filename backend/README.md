@@ -66,29 +66,18 @@ sed -E '/^(CREATE DATABASE|USE) centro_medico;/d' backend/db/db.sql | mysql -u r
 
 Luego configurá `DB_NAME=centro_medico_test` en `backend/.env`.
 
-## Cuentas de prueba y creación reproducible de un usuario `admin`
+## Cuentas de prueba
 
-- `backend/db/db.sql` carga únicamente **dos pacientes demo**:
-  - `marta@gomez.com` / `12345678` (`dni`: `99999999`, `id`: `1`, `rol`: `paciente`)
-  - `juan@perez.com` / `juan5555` (`dni`: `55555555`, `id`: `2`, `rol`: `paciente`)
-- Por seguridad, `db.sql` **no incluye una cuenta `admin` con clave fija**. Para
-  probar rutas de recepción y administración en la base de prueba, ejecutá el
-  script [`db/crear_admin_prueba.py`](./db/crear_admin_prueba.py), que solo
-  inserta cuentas nuevas (falla sin modificar nada si el DNI o email ya existen),
-  exige `--confirmar-base-prueba` y lee la contraseña desde la variable de
-  entorno `ADMIN_TEST_PASSWORD` (sin exponerla como argumento en la terminal):
+`backend/db/db.sql` carga estas cuentas, con las contraseñas guardadas como hash
+`pbkdf2:sha256:600000`:
 
-```bash
-cd backend
-DB_HOST=127.0.0.1 DB_PORT=3307 DB_NAME=centro_medico \
-ADMIN_TEST_PASSWORD="<tu_clave_de_prueba_min_8_chars>" \
-./.venv/bin/python db/crear_admin_prueba.py \
-  --confirmar-base-prueba \
-  --email admin@saludintegral.com \
-  --dni 11222333 \
-  --nombre Admin \
-  --apellido Sistema
-```
+- `marta@gomez.com` / `12345678` (`dni`: `99999999`, `id`: `1`, `rol`: `paciente`)
+- `juan@perez.com` / `juan5555` (`dni`: `55555555`, `id`: `2`, `rol`: `paciente`)
+- `admin@saludintegral.com` / `Admin1234` (`dni`: `11222333`, `id`: `3`, `rol`: `admin`)
+
+La cuenta `admin` permite probar las rutas de recepción y administración. Son
+credenciales solo de prueba: en una instalación real, el administrador se crea
+con una contraseña propia.
 
 ## Inicio del servidor Backend (puerto 5000)
 
