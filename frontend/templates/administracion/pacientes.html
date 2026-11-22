@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de pacientes | Administración{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/administracion/especialidades.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/administracion/pacientes.css') }}">
+{% endblock %}
+
+{% block body %}
+
+<div class="dashboard-layout">
+
+    <!-- BARRA LATERAL -->
+    {% include "components/sidebar_admin.html" %}
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="dashboard-main">
+
+        <!-- BARRA SUPERIOR -->
+        {% include "components/topbar_admin.html" %}
+
+        <div class="dashboard-content">
+
+            <!-- ENCABEZADO -->
+            <section class="dashboard-header">
+                <p class="breadcrumb">ADMINISTRACIÓN · SOLO ROL ADMINISTRADOR</p>
+                <h1>Gestión de pacientes</h1>
+                <p>Registrá, editá y da de baja pacientes. Las bajas son lógicas y conservan los turnos.</p>
+            </section>
+
+            <!-- MENSAJES -->
+            {% if error %}
+            <div class="mensaje-error">✕ {{ error }}</div>
+            {% endif %}
+            {% if request.args.get('creado') %}
+            <div class="mensaje-exito">✓ El paciente fue registrado correctamente.</div>
+            {% elif request.args.get('editado') %}
+            <div class="mensaje-exito">✓ Los datos del paciente fueron actualizados.</div>
+            {% elif request.args.get('baja') %}
+            <div class="mensaje-info">El paciente fue dado de baja. Ya no puede iniciar sesión; sus turnos se conservan.</div>
+            {% endif %}
+
+            <!-- BARRA DE ACCIÓN Y RESUMEN -->
+            <section class="especialidades-toolbar">
+                <p class="resumen-conteo">
+                    {% set activos = pacientes | selectattr('activo') | list | length %}
+                    {{ pacientes | length }} pacientes · {{ activos }} activos · {{ pacientes | length - activos }} inactivos
+                </p>
+                <a href="{{ url_for('administracion.nuevo_paciente') }}" class="btn-alta">+ Alta de paciente</a>
+            </section>
+
+            <!-- FILTROS -->
+            <form method="GET" action="{{ url_for('administracion.pacientes') }}" class="especialidades-filtros">
+                <div class="filtro-grupo">
+                    <label for="buscar-paciente">Buscar paciente</label>
+                    <input type="text" id="buscar-paciente" name="buscar" placeholder="DNI, nombre, apellido o email" value="{{ buscar }}">
+                </div>
+
+                <div class="filtro-grupo">
+                    <label for="filtro-estado">Estado</label>
+                    <select id="filtro-estado" name="estado" onchange="this.form.submit()">
+                        <option value="">Todos los estados</option>
+                        <option value="activo" {% if estado == 'activo' %}selected{% endif %}>Activo</option>
+                        <option value="inactivo" {% if estado == 'inactivo' %}selected{% endif %}>Inactivo</option>
+                    </select>
+                </div>
+            </form>
+
+            <!-- TABLA DE PACIENTES -->
+            <section class="panel-tabla">
+                <table class="tabla-especialidades">
+                    <thead>
+                        <tr>
+                            <th>DNI</th>
+                            <th>Paciente</th>
+                            <th>Email</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in pacientes %}
+                        <tr class="{% if not p.activo %}fila-inactiva{% endif %}">
+                            <td>{{ p.dni }}</td>
+                            <td class="col-nombre">{{ p.apellido }}, {{ p.nombre }}</td>
+                            <td class="col-descripcion">{{ p.email }}</td>
+                            <td>
+                                {% if p.activo %}
+                                <span class="estado-activo">✓ Activo</span>
+                                {% else %}
+                                <span class="estado-inactivo">✕ Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td class="col-acciones">
+                                <a href="{{ url_for('administracion.editar_paciente', dni=p.dni) }}" class="accion-link">Editar</a>
+                                {% if p.activo %}
+                                <span class="accion-separador">·</span>
+                                <form action="{{ url_for('administracion.dar_baja_paciente', dni=p.dni) }}" method="POST" class="form-en-linea">
+                                    <button type="submit" class="accion-link-btn">Dar de baja</button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="tabla-vacia">No se encontraron pacientes.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- AVISO DE BAJA LÓGICA -->
+            <aside class="panel-aviso-baja">
+                <span class="aviso-icono">!</span>
+                <div class="aviso-texto">
+                    <h3>Baja lógica, sin borrar información</h3>
+                    <p>Un paciente dado de baja no puede iniciar sesión ni reservar. Sus turnos e historial se conservan.</p>
+                </div>
+            </aside>
+
+        </div>
+
+    </main>
+
+</div>
+
+{% endblock %}
