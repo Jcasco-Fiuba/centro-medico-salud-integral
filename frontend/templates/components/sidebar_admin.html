@@ -36,6 +36,12 @@
       {% if request.endpoint in ['administracion.consultorios', 'administracion.nuevo_consultorio', 'administracion.editar_consultorio'] %}aria-current="page"{% endif %}
     >Consultorios</a>
 
+        <a
+      href="{{ url_for('administracion.pacientes') }}"
+      class="nav-link{% if request.endpoint in ['administracion.pacientes', 'administracion.nuevo_paciente', 'administracion.editar_paciente'] %} activo{% endif %}"
+      {% if request.endpoint in ['administracion.pacientes', 'administracion.nuevo_paciente', 'administracion.editar_paciente'] %}aria-current="page"{% endif %}
+    >Pacientes</a>
+
     <a
       href="{{ url_for('administracion.agendas') }}"
       class="nav-link{% if request.endpoint in ['administracion.agendas', 'administracion.disponibilidad', 'administracion.nuevo_turno', 'administracion.guardar_turno'] %} activo{% endif %}"
