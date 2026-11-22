@@ -304,3 +304,20 @@ def marcar_turno_ausente(id_turno: int) -> dict | None:
     """
     ejecutar_mutacion(sql, {"id": int(id_turno)})
     return buscar_turno_por_token(turno["string_token"]) if turno.get("string_token") else buscar_turno_id(id_turno)
+
+def buscar_datos_correo_reserva(turno_id: int) -> dict | None:
+    """Datos del turno, paciente, médico y consultorio para armar el correo de confirmación."""
+    sql = """
+    SELECT turnos.id, turnos.fecha_hora, turnos.estado,
+           usuarios.nombre, usuarios.apellido, usuarios.email,
+           medicos.nombre AS medico_nombre, medicos.apellido AS medico_apellido,
+           consultorios.nombre AS consultorio_nombre,
+           consultorios.ubicacion AS consultorio_ubicacion
+    FROM turnos
+    JOIN usuarios ON usuarios.id = turnos.id_usuario
+    JOIN medicos ON medicos.id = turnos.id_medico
+    JOIN consultorios ON consultorios.id = turnos.id_consultorio
+    WHERE turnos.id = %(turno_id)s
+    """
+    filas = ejecutar_consulta(sql, {"turno_id": int(turno_id)})
+    return filas[0] if filas else None
