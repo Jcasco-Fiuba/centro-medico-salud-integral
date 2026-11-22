@@ -61,8 +61,7 @@ centro-medico-salud-integral/
 │   │   ├── repository/       # Consultas SQL explícitas
 │   │   └── validators/       # Validación de los datos recibidos
 │   └── db/
-│       ├── db.sql            # Creación de tablas y datos iniciales
-│       └── crear_admin_prueba.py
+│       └── db.sql            # Creación de tablas y datos iniciales 
 ├── frontend/
 │   ├── app.py
 │   ├── init.sh
@@ -139,9 +138,15 @@ cargá el esquema y los datos iniciales:
 mysql -u root -p < backend/db/db.sql
 ```
 
-> **Importante:** `db.sql` crea la base `centro_medico` y vuelve a crear sus
-> tablas. No lo ejecutes contra una base con datos que quieras conservar. Para
-> trabajar con una instancia o un schema separado, seguí las opciones del
+> **Importante:** `db.sql` no borra datos existentes. Para cargarlo de nuevo
+> desde cero, primero borrá la base (se pierden los datos cargados a mano):
+>
+> ```bash
+> mysql -u root -p -e "DROP DATABASE centro_medico;"
+> mysql -u root -p < backend/db/db.sql
+> ```
+>
+> Para trabajar con una instancia o un schema separado, seguí las opciones del
 > [`backend/README.md`](./backend/README.md).
 
 ### 2. Backend (terminal 1, puerto 5000)
@@ -181,17 +186,8 @@ Para detener cualquiera de los dos servidores, usá `Ctrl + C` en su terminal.
 
 ### 4. Cuenta de administrador
 
-`db.sql` no incluye una cuenta `admin` con clave fija. Para crearla en la base
-local de desarrollo:
-
-```bash
-cd backend
-ADMIN_TEST_PASSWORD="<clave_de_al_menos_8_caracteres>" \
-./.venv/bin/python db/crear_admin_prueba.py --confirmar-base-desarrollo-local
-```
-
-El script crea `admin@saludintegral.com` (DNI `11222333`) y toma la conexión de
-`backend/.env`. Si la cuenta ya existe, no modifica nada.
+`db.sql` ya crea la cuenta `admin@saludintegral.com` (DNI `11222333`) con la
+contraseña de prueba `Admin1234`.
 
 ## Cuentas de prueba
 
@@ -199,7 +195,7 @@ El script crea `admin@saludintegral.com` (DNI `11222333`) y toma la conexión de
 | --- | --- | --- |
 | Paciente | `marta@gomez.com` | `12345678` |
 | Paciente | `juan@perez.com` | `juan5555` |
-| Admin | `admin@saludintegral.com` | la definida en `ADMIN_TEST_PASSWORD` |
+| Admin | `admin@saludintegral.com` | `Admin1234` | 
 
 Los turnos de `db.sql` tienen fechas fijas. Para probar una reserva se necesitan
 turnos con fecha futura, que se pueden crear desde **Administración → Agendas**
