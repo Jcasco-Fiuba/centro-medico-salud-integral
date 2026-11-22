@@ -28,8 +28,9 @@ Ejecutar `db.sql` siguiendo una de las opciones de aislamiento anteriores. El
 script crea las tablas (`consultorios`, `especialidades`, `usuarios`, `medicos`,
 `medicos_especialidades`, `turnos`) con `usuarios.email VARCHAR(254)` y
 `usuarios.password_hash VARCHAR(255)`, y carga datos iniciales de prueba con
-dos usuarios de rol `paciente` (`marta@gomez.com` / `12345678` y
-`juan@perez.com` / `juan5555`) cuyos hashes usan el formato canónico
+dos usuarios de rol `paciente` (`marta@gomez.com` / `12345678`,
+`juan@perez.com` / `juan5555`) y uno de rol `admin`
+(`admin@saludintegral.com` / `Admin1234`), cuyos hashes usan el formato canónico
 `pbkdf2:sha256:600000` (98 caracteres).
 
 ## Base existente (migraciones incrementales)
@@ -56,44 +57,23 @@ orden y una sola vez:
 El backend nunca acepta contraseñas en texto plano como mecanismo de
 compatibilidad.
 
-## Creación reproducible de una cuenta `admin` de prueba
+## Cuenta `admin` de prueba
 
-`db.sql` no incluye usuarios con `rol = 'admin'` para evitar que una instalación
-quede con credenciales administrativas fijas o débiles por defecto.
+`db.sql` crea una cuenta de administrador para pruebas, junto con los dos
+pacientes demo:
 
-- **Para pruebas locales o automatizadas:** usá el script
-  [`crear_admin_prueba.py`](./crear_admin_prueba.py), que solo crea una cuenta
-  nueva (si el DNI o el correo ya existen, termina con error sin modificar la
-  fila existente), exige `--confirmar-base-prueba` (verificando que no apunte a
-  `centro_medico` en el puerto estándar `3306`) y lee la contraseña desde la
-  variable de entorno `ADMIN_TEST_PASSWORD` para no dejarla en el historial de
-  comandos:
-  ```bash
-  cd backend
-  DB_HOST=127.0.0.1 DB_PORT=3307 DB_NAME=centro_medico \
-  ADMIN_TEST_PASSWORD="<clave_de_prueba_min_8_caracteres>" \
-  ./.venv/bin/python db/crear_admin_prueba.py \
-    --confirmar-base-prueba \
-    --email admin@saludintegral.com \
-    --dni 11222333 \
-    --nombre Admin \
-    --apellido Sistema
-  ```
-- **Para la base local de desarrollo `centro_medico`:** el script permite crear
-  explícitamente una cuenta nueva únicamente con el flag
-  `--confirmar-base-desarrollo-local`, y solo si `DB_HOST` es local,
-  `DB_PORT=3306` y `DB_NAME=centro_medico`. La contraseña sigue viniendo de
-  `ADMIN_TEST_PASSWORD`; no se acepta como argumento. El script nunca cambia el
-  rol ni la contraseña de una cuenta existente:
-  ```bash
-  cd /home/Jorge/worktrees/integracion-full-stack/backend
-  read -r -s -p "Contraseña admin local: " ADMIN_TEST_PASSWORD
-  export ADMIN_TEST_PASSWORD
-  echo
-  /home/Jorge/centro-medico-salud-integral/backend/.venv/bin/python \
-    db/crear_admin_prueba.py --confirmar-base-desarrollo-local
-  unset ADMIN_TEST_PASSWORD
-  ```
-- **En una instalación real:** el administrador inicial debe aprovisionarse con
-  datos reales y una contraseña robusta generada específicamente para ese
-  entorno, nunca reutilizando contraseñas de prueba.
+- `admin@saludintegral.com` / `Admin1234` (`dni`: `11222333`, `id`: `3`, `rol`: `admin`)
+
+Como en los pacientes, la contraseña se guarda solo como hash
+`pbkdf2:sha256:600000`; el script nunca contiene la clave en texto plano.
+
+Para volver a cargar la base desde cero (borra todos los datos cargados a mano):
+
+```bash
+mysql -u root -p -e "DROP DATABASE centro_medico;"
+mysql -u root -p < backend/db/db.sql
+```
+
+- **En una instalación real:** el administrador inicial debe crearse con datos
+  reales y una contraseña robusta generada para ese entorno, nunca con la clave
+  de prueba `Admin1234`.
