@@ -36,12 +36,15 @@ def _parsear_fecha_hora(valor: str | datetime) -> datetime:
             continue
     return datetime.fromisoformat(valor)
 
-
-def _generar_qr_base64(dato: str) -> str:
+def _generar_qr_png(dato: str) -> bytes:
     imagen = qrcode.make(dato)
     buffer = io.BytesIO()
     imagen.save(buffer, format="PNG")
-    return base64.b64encode(buffer.getvalue()).decode("ascii")
+    return buffer.getvalue()
+
+def _generar_qr_base64(dato: str) -> str:
+    qr_png= _generar_qr_png(dato)
+    return base64.b64encode(qr_png).decode("ascii")
 
 
 def _sin_token(turno: dict | None) -> dict | None:
