@@ -18,6 +18,7 @@ from app.validators.turnos import (
     validar_post_turno,
     validar_reserva_turno,
 )
+from app.services import email_reservas as servi_email
 
 
 def _parsear_fecha_hora(valor: str | datetime) -> datetime:
@@ -160,6 +161,7 @@ def reservar_turno(datos: dict, usuario_id: int):
         "qr_token": token,
         "qr_base64": qr_b64,
         "qr_data_url": f"data:image/png;base64,{qr_b64}",
+        "correo_estado": servi_email.enviar_qr_reserva(turno_id, token, _generar_qr_png(token)),
     }
     return resultado, None
 
