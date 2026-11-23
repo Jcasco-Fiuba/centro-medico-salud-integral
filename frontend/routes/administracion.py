@@ -1,6 +1,7 @@
 """Rutas de administración del centro médico."""
 
 from datetime import datetime
+from email.utils import parsedate_to_datetime
 from urllib.parse import urlencode
 
 from flask import Blueprint, redirect, render_template, request, url_for
@@ -84,6 +85,20 @@ def _formatear_porcentaje(numerador: int, denominador: int) -> str:
     return f"{valor:.1f} %".replace(".", ",")
 
 
+def _hora_del_turno(fecha_hora: object) -> int | None:
+    """Lee la hora de una fecha ISO o de un DATETIME serializado por Flask."""
+    if not isinstance(fecha_hora, str):
+        return None
+
+    try:
+        return datetime.fromisoformat(fecha_hora).hour
+    except ValueError:
+        try:
+            return parsedate_to_datetime(fecha_hora).hour
+        except (ValueError, TypeError):
+            return None
+
+
 def _calcular_metricas_dashboard(turnos: list[dict]) -> dict:
     """Calcula los indicadores reales del dashboard a partir de los turnos existentes."""
     estados = {
@@ -96,6 +111,13 @@ def _calcular_metricas_dashboard(turnos: list[dict]) -> dict:
     }
     conteo_por_medico: dict[int, int] = {}
 
+    estados_ocupados = {"reservado", "confirmado", "atendido", "ausente"}
+
+    franjas = {
+        (inicio, fin): {"nombre": f"{inicio}-{fin} h", "ocupados": 0, "total": 0}
+        for inicio, fin in ((8, 10), (10, 12), (12, 14), (14, 17), (17, 20))
+    }
+
     for turno in turnos:
         estado = str(turno.get("estado", "")).lower()
         if estado in estados:
@@ -104,10 +126,20 @@ def _calcular_metricas_dashboard(turnos: list[dict]) -> dict:
         if isinstance(id_medico, int):
             conteo_por_medico[id_medico] = conteo_por_medico.get(id_medico, 0) + 1
 
+        hora = _hora_del_turno(turno.get("fecha_hora"))
+
+        if hora is not None:
+            for (inicio, fin), franja in franjas.items():
+                if inicio <= hora < fin:
+                    franja["total"] += 1
+                    franja["ocupados"] += int(estado in estados_ocupados)
+                    break
+
     total_turnos = len(turnos)
-    cupos_ocupados = (
-        estados["reservado"] + estados["confirmado"] + estados["atendido"] + estados["ausente"]
-    )
+    cupos_ocupados = sum(estados[estado] for estado in estados_ocupados)
+    for franja in franjas.values():
+        total = franja["total"]
+        franja["porcentaje"] = round(franja["ocupados"] / total * 100) if total else 0
 
     conteo_especialidades: dict[str, int] = {}
     for id_medico, cantidad in conteo_por_medico.items():
@@ -144,12 +176,13 @@ def _calcular_metricas_dashboard(turnos: list[dict]) -> dict:
         "ocupacion_porcentaje": _formatear_porcentaje(cupos_ocupados, total_turnos),
         "ocupacion_detalle": f"{cupos_ocupados} de {total_turnos} cupos de agenda",
         "cancelaciones_total": estados["cancelado"],
-        "cancelaciones_porcentaje": f"{_formatear_porcentaje(estados['cancelado'], total_turnos)} de los turnos del período",
+        "cancelaciones_porcentaje": f"{_formatear_porcentaje(estados['cancelado'], total_turnos)} del total de turnos",
         "ausentismo_porcentaje": _formatear_porcentaje(estados["ausente"], total_turnos),
         "ausentismo_detalle": f"{estados['ausente']} ausentes de {total_turnos} turnos",
         "total_especialidades": total_turnos,
         "especialidades": especialidades_ranking,
         "estados": estados,
+        "franjas": list(franjas.values()),
     }
 
 
