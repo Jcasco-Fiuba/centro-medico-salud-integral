@@ -372,6 +372,7 @@
 .barra-horario {
     width: 100%;
     max-width: 45px;
+    height: 130px;
     background-color: #e8eef1;
     border-radius: 5px 5px 0 0;
     position: relative;
@@ -383,36 +384,9 @@
     bottom: 0;
     left: 0;
     width: 100%;
+    height: var(--ocupacion, 0%);
     background-color: #28677b;
     border-radius: 5px 5px 0 0;
-}
-
-.barra-1::before {
-    height: 81%;
-}
-
-.barra-2::before {
-    height: 87%;
-}
-
-.barra-3::before {
-    height: 68%;
-}
-
-.barra-4::before {
-    height: 75%;
-}
-
-.barra-5::before {
-    height: 50%;
-}
-
-.barra-1,
-.barra-2,
-.barra-3,
-.barra-4,
-.barra-5 {
-    height: 130px;
 }
 
 .grafico-leyenda {
@@ -438,28 +412,27 @@
     height: 100%;
 }
 
+.estado-disponible {
+    background-color: #e8eef1;
+}
+
 .estado-reservado {
-    width: 62.5%;
     background-color: #28677b;
 }
 
 .estado-confirmado {
-    width: 7.8%;
     background-color: #438d80;
 }
 
 .estado-atendido {
-    width: 14.1%;
     background-color: #8eaaa0;
 }
 
 .estado-cancelado {
-    width: 9.4%;
     background-color: #ad554e;
 }
 
 .estado-ausente {
-    width: 6.2%;
     background-color: #92764b;
 }
 

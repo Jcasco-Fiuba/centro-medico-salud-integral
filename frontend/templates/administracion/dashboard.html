@@ -42,26 +42,26 @@
 
                 <article class="indicador">
                     <h2>Total de turnos</h2>
-                    <p class="indicador-valor">{{ metricas.total_turnos if metricas and 'total_turnos' in metricas else 64 }}</p>
-                    <p>Reservas del período, todos los estados</p>
+                    <p class="indicador-valor">{{ metricas.total_turnos }}</p>
+                    <p>Cupos registrados en todos los estados</p>
                 </article>
 
                 <article class="indicador">
                     <h2>Ocupación</h2>
-                    <p class="indicador-valor">{{ metricas.ocupacion_porcentaje if metricas and 'ocupacion_porcentaje' in metricas else '72,5 %' }}</p>
-                    <p>{{ metricas.ocupacion_detalle if metricas and 'ocupacion_detalle' in metricas else '58 de 80 cupos de agenda' }}</p>
+                    <p class="indicador-valor">{{ metricas.ocupacion_porcentaje }}</p>
+                    <p>{{ metricas.ocupacion_detalle }}</p>
                 </article>
 
                 <article class="indicador">
                     <h2>Cancelaciones</h2>
-                    <p class="indicador-valor">{{ metricas.cancelaciones_total if metricas and 'cancelaciones_total' in metricas else 6 }}</p>
-                    <p>{{ metricas.cancelaciones_porcentaje if metricas and 'cancelaciones_porcentaje' in metricas else '9,4 % de los turnos del período' }}</p>
+                    <p class="indicador-valor">{{ metricas.cancelaciones_total }}</p>
+                    <p>{{ metricas.cancelaciones_porcentaje }}</p>
                 </article>
 
                 <article class="indicador">
                     <h2>Ausentismo</h2>
-                    <p class="indicador-valor">{{ metricas.ausentismo_porcentaje if metricas and 'ausentismo_porcentaje' in metricas else '6,3 %' }}</p>
-                    <p>{{ metricas.ausentismo_detalle if metricas and 'ausentismo_detalle' in metricas else '4 ausentes de 64 turnos' }}</p>
+                    <p class="indicador-valor">{{ metricas.ausentismo_porcentaje }}</p>
+                    <p>{{ metricas.ausentismo_detalle }}</p>
                 </article>
 
             </section>
@@ -73,9 +73,9 @@
                 <!-- ESPECIALIDADES -->
                 <article class="panel estadistica-especialidades">
 
-                    <h2>Especialidades más solicitadas</h2>
+                    <h2>Especialidades con más turnos</h2>
 
-                    <p>Cantidad de turnos · Total {{ metricas.total_turnos if metricas and 'total_turnos' in metricas else 64 }}</p>
+                    <p>Cantidad de turnos · Total {{ metricas.total_turnos }}</p>
 
                     {% if metricas and metricas.especialidades %}
                         {% for esp in metricas.especialidades %}
@@ -90,7 +90,7 @@
                         </div>
                         {% endfor %}
                     {% else %}
-                        <p>No hay turnos registrados por especialidad en el período.</p>
+                        <p>No hay turnos registrados por especialidad.</p>
                     {% endif %}
 
                 </article>
@@ -101,39 +101,17 @@
 
                     <h2>Ocupación por franja horaria</h2>
 
-                    <p>Turnos no cancelados sobre cupos habilitados.</p>
+                    <p>Cupos ocupados sobre el total registrado en cada franja.</p>
 
                     <div class="grafico-horarios">
 
+                        {% for franja in metricas.franjas %}
                         <div class="horario">
-                            <span>13/16</span>
-                            <div class="barra-horario barra-1"></div>
-                            <span>8-10 h</span>
+                            <span>{{ franja.ocupados }}/{{ franja.total }}</span>
+                            <div class="barra-horario" style="--ocupacion: {{ franja.porcentaje }}%;"></div>
+                            <span>{{ franja.nombre }}</span>
                         </div>
-
-                        <div class="horario">
-                            <span>14/16</span>
-                            <div class="barra-horario barra-2"></div>
-                            <span>10-12 h</span>
-                        </div>
-
-                        <div class="horario">
-                            <span>11/16</span>
-                            <div class="barra-horario barra-3"></div>
-                            <span>12-14 h</span>
-                        </div>
-
-                        <div class="horario">
-                            <span>12/16</span>
-                            <div class="barra-horario barra-4"></div>
-                            <span>14-17 h</span>
-                        </div>
-
-                        <div class="horario">
-                            <span>8/16</span>
-                            <div class="barra-horario barra-5"></div>
-                            <span>17-20 h</span>
-                        </div>
+                        {% endfor %}
 
                     </div>
 
@@ -150,20 +128,18 @@
 
                     <h2>Estado de los turnos</h2>
 
-                    <div class="barra-estados">
-                        <div class="estado-reservado"></div>
-                        <div class="estado-confirmado"></div>
-                        <div class="estado-atendido"></div>
-                        <div class="estado-cancelado"></div>
-                        <div class="estado-ausente"></div>
+                    {% if metricas.total_turnos %}
+                    <div class="barra-estados" aria-hidden="true">
+                        {% for estado, cantidad in metricas.estados.items() %}
+                        <div class="estado-{{ estado }}" style="width: {{ cantidad / metricas.total_turnos * 100 }}%;"></div>
+                        {% endfor %}
                     </div>
+                    {% endif %}
 
                     <ul class="lista-estados">
-                        <li>Reservado <span>{{ metricas.estados.reservado if metricas and metricas.estados else 40 }}</span></li>
-                        <li>Confirmado <span>{{ metricas.estados.confirmado if metricas and metricas.estados else 5 }}</span></li>
-                        <li>Atendido <span>{{ metricas.estados.atendido if metricas and metricas.estados else 9 }}</span></li>
-                        <li>Cancelado <span>{{ metricas.estados.cancelado if metricas and metricas.estados else 6 }}</span></li>
-                        <li>Ausente <span>{{ metricas.estados.ausente if metricas and metricas.estados else 4 }}</span></li>
+                        {% for estado, cantidad in metricas.estados.items() %}
+                        <li>{{ estado | capitalize }} <span>{{ cantidad }}</span></li>
+                        {% endfor %}
                     </ul>
 
                 </article>
@@ -176,14 +152,13 @@
 
                     <p>
                         <strong>Ocupación:</strong>
-                        turnos no cancelados sobre cupos habilitados.
+                        reservados, confirmados, atendidos y ausentes sobre el total de cupos registrados.
                         Los cancelados liberan su cupo; los ausentes lo ocupan.
                     </p>
 
                     <p>
                         <strong>Ausentismo:</strong>
                         ausentes sobre el total de turnos.
-                        Confirma la llegada y fue registrada.
                     </p>
 
                     <p>
