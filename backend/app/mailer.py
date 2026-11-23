@@ -35,7 +35,7 @@ def enviar_email_qr_reserva(reserva: dict, codigo: str, qr_png: bytes) -> None:
     correo = _mail()  # registra Flask-Mail en la app antes de crear el Message
 
     mensaje = Message(
-        subject="Confirmación de tu turno - Centro Médico Salud Integral",
+        subject="Reservación de tu turno - Centro Médico Salud Integral",
         recipients=[reserva["email"]],
         html=render_template("emails/reserva_qr.html", reserva=reserva, codigo=codigo),
     )
