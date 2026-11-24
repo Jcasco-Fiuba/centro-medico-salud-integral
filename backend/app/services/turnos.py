@@ -18,6 +18,7 @@ from app.validators.turnos import (
     validar_post_turno,
     validar_reserva_turno,
 )
+from app.services import email_reservas as servi_email
 
 
 def _parsear_fecha_hora(valor: str | datetime) -> datetime:
@@ -36,12 +37,15 @@ def _parsear_fecha_hora(valor: str | datetime) -> datetime:
             continue
     return datetime.fromisoformat(valor)
 
-
-def _generar_qr_base64(dato: str) -> str:
+def _generar_qr_png(dato: str) -> bytes:
     imagen = qrcode.make(dato)
     buffer = io.BytesIO()
     imagen.save(buffer, format="PNG")
-    return base64.b64encode(buffer.getvalue()).decode("ascii")
+    return buffer.getvalue()
+
+def _generar_qr_base64(dato: str) -> str:
+    qr_png= _generar_qr_png(dato)
+    return base64.b64encode(qr_png).decode("ascii")
 
 
 def _sin_token(turno: dict | None) -> dict | None:
@@ -157,6 +161,7 @@ def reservar_turno(datos: dict, usuario_id: int):
         "qr_token": token,
         "qr_base64": qr_b64,
         "qr_data_url": f"data:image/png;base64,{qr_b64}",
+        "correo_estado": servi_email.enviar_qr_reserva(turno_id, token, _generar_qr_png(token)),
     }
     return resultado, None
 
