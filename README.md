@@ -109,7 +109,7 @@ Cada carpeta tiene su propio README con más detalle:
 
 ### Reglas de negocio
 
-- Todos los turnos duran 30 minutos y hay una sola sede.
+- Todos los turnos duran 30 minutos.
 - Un médico no puede tener turnos superpuestos.
 - Un paciente no puede tener dos turnos activos (futuros, `reservado` o
   `confirmado`) con el mismo médico.
