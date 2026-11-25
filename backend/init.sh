@@ -22,7 +22,9 @@ python -m pip install -r requirements.txt
 
 if [[ ! -f .env ]]; then
     cp .env.example .env
-    printf 'Se creó backend/.env. Revisá la configuración de MySQL antes de usar rutas que consulten la base.\n'
+    CLAVE="$(python -c "import secrets; print(secrets.token_hex(32))")"
+    sed -i "s/^JWT_SECRET_KEY=$/JWT_SECRET_KEY=$CLAVE/" .env
+    printf 'Se creó backend/.env con una JWT_SECRET_KEY nueva. Completá DB_USER y DB_PASSWORD con los datos de tu MySQL.\n'
 fi
 
 exec python app.py
