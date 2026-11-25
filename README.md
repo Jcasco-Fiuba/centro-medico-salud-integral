@@ -137,6 +137,11 @@ cargá el esquema y los datos iniciales:
 ```bash
 mysql -u root -p < backend/db/db.sql
 ```
+Para tener turnos libres para probar reservas, cargá también los datos de prueba:
+
+```bash
+mysql -u root -p < backend/db/datos_demo.sql
+```
 
 > **Importante:** `db.sql` no borra datos existentes. Para cargarlo de nuevo
 > desde cero, primero borrá la base (se pierden los datos cargados a mano):
