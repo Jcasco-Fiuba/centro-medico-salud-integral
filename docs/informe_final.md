@@ -11,7 +11,6 @@
 - Alan Nieves Villagra (113133)
 - Jorge Bencomo Navas (116303)
 - Federico Nahuel Gioda (116480)
-- Valentina Nieto (109046)
 - Nicolás Galizio (116617)
 - Cristopher Silva (116121)
 - Lorenzo Decillo (116418)
