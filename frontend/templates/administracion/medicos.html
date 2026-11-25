@@ -75,7 +75,7 @@
 
                 <div class="filtro-grupo">
                     <label for="filtro-estado">Estado</label>
-                    <select id="filtro-estado" name="estado">
+                    <select id="filtro-estado" name="estado" onchange="this.form.submit()">
                         <option value="">Todos los estados</option>
                         <option value="activo" {% if request.args.get('estado') == 'activo' %}selected{% endif %}>Activo</option>
                         <option value="inactivo" {% if request.args.get('estado') == 'inactivo' %}selected{% endif %}>Inactivo</option>

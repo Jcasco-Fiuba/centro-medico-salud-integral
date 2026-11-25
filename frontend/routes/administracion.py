@@ -197,9 +197,9 @@ def _filtrar_por_texto_y_estado(items: list[dict], buscar: str, estado: str, cam
             if any(termino in str(item.get(campo, "")).lower() for campo in campos_texto)
         ]
     if estado == "activo":
-        resultado = [item for item in resultado if item.get("activo") is True]
+        resultado = [item for item in resultado if bool(item.get("activo"))]
     elif estado == "inactivo":
-        resultado = [item for item in resultado if item.get("activo") is False]
+        resultado = [item for item in resultado if not bool(item.get("activo"))]
     return resultado
 
 
